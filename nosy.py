@@ -64,8 +64,9 @@ def run(nosy):
   firstBuild = True
   while (True):
     keepOnNotifyingFailures = True
-    if nosy.checkSum() != val:
-      val=nosy.checkSum()
+    newVal = nosy.checkSum()
+    if newVal != val:
+      val=newVal
       res = os.system ('nosetests')
 #        print "res:" + str(res)
       if (res != 0):
