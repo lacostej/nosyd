@@ -1,3 +1,4 @@
 [nosy]
 monitor_paths=*.txt data/*.txt *.py tests/*.py
 logging=debug
+check_period=1

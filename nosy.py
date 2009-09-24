@@ -24,7 +24,7 @@ class Nosy:
 
   def importConfig(self, configFile):
     import ConfigParser
-    cp = ConfigParser.SafeConfigParser({'monitor_paths': '*.py', 'logging': 'warning'})
+    cp = ConfigParser.SafeConfigParser({'monitor_paths': '*.py', 'logging': 'warning', 'check_period' : '1'})
     if (os.access(configFile, os.F_OK)):
       cp.read(configFile)
 
@@ -36,10 +36,13 @@ class Nosy:
     for path in p.split():
       self.paths += glob.glob(path)
 
+    self.checkPeriod = cp.getint('nosy', 'check_period')
+
   def checkSum(self):
     ''' Return a long which can be used to know if any files from the paths variable have changed.'''
     val = 0
 
+    logger.error("checksumming...")
     for f in self.paths:
       stats = os.stat (f)
       val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
@@ -76,7 +79,7 @@ class Nosy:
           if (oldRes != 0 or firstBuild):
             self.notifySuccess()
         firstBuild = False
-      time.sleep(1)
+      time.sleep(self.checkPeriod)
     oldRes = res
 
 if __name__ == '__main__':
