@@ -15,6 +15,26 @@ LEVELS = {'debug': logging.DEBUG,
 
 pwd = os.path.abspath(".")
 
+class XunitTestSuite:
+  def __init__(self, name, tests, errors, failures, skip):
+    self.name = name
+    self.tests = tests
+    self.errors = errors
+    self.failures = failures
+    self.skip = skip
+
+  def __str__(self):
+    return "XunitTestSuite: %s %s %s %s %s" % (self.name , self.tests, self.errors, self.failures, self.skip)
+
+def parse_xunit_results(filename):
+  try :
+    from xml.dom import minidom
+    xmldoc = minidom.parse(filename)
+    testsuite = xmldoc.firstChild
+    return XunitTestSuite(testsuite.attributes['name'].value, int(testsuite.attributes['tests'].value), int(testsuite.attributes['errors'].value), int(testsuite.attributes['failures'].value), int(testsuite.attributes['skip'].value))  
+  except IOError:
+    return None
+
 '''
 Watch for changes in all monitored files. If changes, run nosetests.
  '''
@@ -60,13 +80,28 @@ class Nosy:
       print "Failed to send notification"
 
   def notifyFailure(self):
-    self.notify(os.path.basename(pwd) + " build failed.", pwd + ": nosetests failed")
+    r = parse_xunit_results('nosetests.xml')
+    if (r):
+      msg1, msg2 = os.path.basename(pwd) + " build failed.", pwd + ": " + str(r.failures) + " tests failed and " + str(r.errors) + " errors."
+    else:
+      msg1, msg2 = os.path.basename(pwd) + " build failed.", pwd + ": build failed."
+    self.notify(msg1, msg2)
 
   def notifySuccess(self):
-    self.notify(os.path.basename(pwd) + " build successfull.", pwd + ": nosetests success")
+    r = parse_xunit_results('nosetests.xml')
+    if (r):
+      msg1, msg2 = os.path.basename(pwd) + " build successfull.", pwd + ": " + str(r.tests - r.skip) + " tests passed."
+    else:
+      msg1, msg2 = os.path.basename(pwd) + " build successful.", pwd + ": build successful."
+    self.notify(msg1, msg2)
 
   def notifyFixed(self):
-    self.notify(os.path.basename(pwd) + " build fixed.", pwd + ": nosetests success")
+    r = parse_xunit_results('nosetests.xml')
+    if (r):
+      msg1, msg2 = os.path.basename(pwd) + " build fixed.", pwd + ": " + str(r.tests - r.skip) + " tests passed."
+    else:
+      msg1, msg2 = os.path.basename(pwd) + " build Fixed.", pwd + ": build fixed."
+    self.notify(msg1, msg2)
 
   def run(self):
     val=0
@@ -77,7 +112,7 @@ class Nosy:
       newVal = self.checkSum()
       if newVal != val:
         val=newVal
-        res = os.system ('nosetests')
+        res = os.system ('nosetests --with-xunit')
 #        print "res:" + str(res)
         if (res != 0):
           if (oldRes == 0 or keepOnNotifyingFailures):

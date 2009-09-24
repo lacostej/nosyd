@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite name="nosetests" tests="1" errors="0" failures="1" skip="0"><testcase classname="tests.test_nosy.TestNosy" name="tests.test_nosy.TestNosy.test_xxx" time="0"><failure type="exceptions.AssertionError">Traceback (most recent call last):
+  File &quot;/usr/lib/python2.6/unittest.py&quot;, line 279, in run
+    testMethod()
+  File &quot;/usr/local/lib/python2.6/dist-packages/nose-0.11.1-py2.6.egg/nose/case.py&quot;, line 183, in runTest
+    self.test(*self.arg)
+  File &quot;/home/jerome/Code/Customers/Me/nosy-python/tests/test_nosy.py&quot;, line 13, in test_xxx
+    assert False
+AssertionError: 
+-------------------- &gt;&gt; begin captured stdout &lt;&lt; ---------------------
+setUp
+
+--------------------- &gt;&gt; end captured stdout &lt;&lt; ----------------------
+</failure></testcase></testsuite>
