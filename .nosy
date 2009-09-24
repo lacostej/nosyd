@@ -1,0 +1,4 @@
+[nosy]
+monitor_paths=*.py tests/*.py
+#logging=warning
+#check_period=1

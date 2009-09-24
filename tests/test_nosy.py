@@ -1,10 +1,14 @@
 import nosy
 
-def setUp(self):
-  pass
+class TestNosy:
 
-def tearDown(self):
-  pass
+  def setUp(self):
+    print "setUp"
+    self.n = nosy.Nosy()
 
-def testXxx():
-  assert True
+  def tearDown(self):
+    self.n = None
+
+  def test_xxx(self):
+    print self.n
+    assert True 
