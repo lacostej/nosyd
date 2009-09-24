@@ -7,23 +7,16 @@ import pynotify
 
 pwd = os.path.abspath(".")
 
+paths = glob.glob ('*.txt') + glob.glob ('data/*.txt') + glob.glob ('*.py') + glob.glob ('tests/*.py') + glob.glob ('*.kid')
+
 '''
 Watch for changes in all .py files. If changes, run nosetests. 
 '''
 def checkSum():
-    ''' Return a long which can be used to know if any .py files have changed.
-    Only looks in the current directory. '''
+    ''' Return a long which can be used to know if any files from the paths variable have changed.'''
     val = 0
-    for f in glob.glob ('*.txt') + glob.glob ('data/*.txt'):
-        stats = os.stat (f)
-        val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
-    for f in glob.glob ('*.py'):
-        stats = os.stat (f)
-        val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
-    for f in glob.glob ('tests/*.py'):
-        stats = os.stat (f)
-        val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
-    for f in glob.glob ('*.kid'):
+
+    for f in paths:
         stats = os.stat (f)
         val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
 
