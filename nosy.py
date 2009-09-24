@@ -42,7 +42,6 @@ class Nosy:
     ''' Return a long which can be used to know if any files from the paths variable have changed.'''
     val = 0
 
-    logger.error("checksumming...")
     for f in self.paths:
       stats = os.stat (f)
       val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
