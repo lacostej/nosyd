@@ -60,6 +60,9 @@ class Nosy:
   def notifySuccess(self):
     self.notify(os.path.basename(pwd) + " build successfull.", pwd + ": nosetests success")
 
+  def notifyFixed(self):
+    self.notify(os.path.basename(pwd) + " build fixed.", pwd + ": nosetests success")
+
   def run(self):
     val=0
     oldRes = 0
@@ -75,11 +78,13 @@ class Nosy:
           if (oldRes == 0 or keepOnNotifyingFailures):
             self.notifyFailure()
         else:
-          if (oldRes != 0 or firstBuild):
+          if (firstBuild):
             self.notifySuccess()
+          elif (oldRes != 0):
+            self.notifyFixed()
         firstBuild = False
       time.sleep(self.checkPeriod)
-    oldRes = res
+      oldRes = res
 
 if __name__ == '__main__':
   nosy = Nosy()
