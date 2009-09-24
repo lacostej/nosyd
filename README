@@ -1,7 +1,16 @@
 An extension over Jeff Winkler's original ([1]) nosy to do personnal CI.
 
+Features:
+* automatically run nosetest whenever one of the monitored files has changed
+* notify using Gnome's notification library
+* per project configuration to override defaults
+
+Usage:
+* install in path and run nosy.py
+* optionaly create a .nosy file in your local directory
+
 Alternatives:
-* an improved version of nosy
+* another improved version of nosy [2]
 
 Links
 [1] http://jeffwinkler.net/2006/04/27/keeping-your-nose-green/

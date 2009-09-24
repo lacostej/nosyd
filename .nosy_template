@@ -1,0 +1,2 @@
+[nosy]
+monitor_paths=*.txt data/*.txt *.py tests/*.py

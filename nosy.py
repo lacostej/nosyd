@@ -7,19 +7,27 @@ import pynotify
 
 pwd = os.path.abspath(".")
 
-paths = glob.glob ('*.txt') + glob.glob ('data/*.txt') + glob.glob ('*.py') + glob.glob ('tests/*.py') + glob.glob ('*.kid')
+class Nosy:
+  paths = []
+  def importConfig(self, configFile):
+    import ConfigParser
+    cp = ConfigParser.SafeConfigParser({'monitor_paths': '*.py'})
+    if (os.access(configFile, os.F_OK)):
+      cp.read(configFile)
+    print cp.get('nosy', 'monitor_paths')
+    for path in cp.get('nosy', 'monitor_paths').split():
+      self.paths += glob.glob(path) 
 
-'''
-Watch for changes in all .py files. If changes, run nosetests. 
-'''
-def checkSum():
+  '''
+  Watch for changes in all monitored files. If changes, run nosetests.
+  '''
+  def checkSum(self):
     ''' Return a long which can be used to know if any files from the paths variable have changed.'''
     val = 0
 
-    for f in paths:
-        stats = os.stat (f)
-        val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
-
+    for f in self.paths:
+      stats = os.stat (f)
+      val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
     return val
 
 def notify(msg1,msg2):
@@ -35,14 +43,14 @@ def notifyFailure():
 def notifySuccess():
     notify(os.path.basename(pwd) + " build successfull.", pwd + ": nosetests success")
 
-def run():
+def run(nosy):
   val=0
   oldRes = 0
   firstBuild = True
   while (True):
     keepOnNotifyingFailures = True
-    if checkSum() != val:
-      val=checkSum()
+    if nosy.checkSum() != val:
+      val=nosy.checkSum()
       res = os.system ('nosetests')
 #        print "res:" + str(res)
       if (res != 0):
@@ -56,4 +64,6 @@ def run():
   oldRes = res
 
 if __name__ == '__main__':
-  run()
+  nosy = Nosy()
+  nosy.importConfig(r".nosy")
+  run(nosy)
