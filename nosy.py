@@ -35,21 +35,25 @@ def notifyFailure():
 def notifySuccess():
     notify(os.path.basename(pwd) + " build successfull.", pwd + ": nosetests success")
 
-val=0
-oldRes = 0
-firstBuild = True
-while (True):
+def run():
+  val=0
+  oldRes = 0
+  firstBuild = True
+  while (True):
     keepOnNotifyingFailures = True
     if checkSum() != val:
-        val=checkSum()
-        res = os.system ('nosetests')
+      val=checkSum()
+      res = os.system ('nosetests')
 #        print "res:" + str(res)
-        if (res != 0):
-          if (oldRes == 0 or keepOnNotifyingFailures):
-            notifyFailure()
-        else:
-          if (oldRes != 0 or firstBuild):
-            notifySuccess()
-        firstBuild = False
-    time.sleep(1)
-    oldRes = res
+      if (res != 0):
+        if (oldRes == 0 or keepOnNotifyingFailures):
+          notifyFailure()
+      else:
+        if (oldRes != 0 or firstBuild):
+          notifySuccess()
+      firstBuild = False
+  time.sleep(1)
+  oldRes = res
+
+if __name__ == '__main__':
+  run()
