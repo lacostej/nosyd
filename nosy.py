@@ -4,19 +4,34 @@
 
 import glob,os,stat,time,os.path
 import pynotify
+import logging
+
+logger = logging.getLogger("simple_example")
+LEVELS = {'debug': logging.DEBUG,
+          'info': logging.INFO,
+          'warning': logging.WARNING,
+          'error': logging.ERROR,
+          'critical': logging.CRITICAL}
 
 pwd = os.path.abspath(".")
 
 class Nosy:
+
   paths = []
+
   def importConfig(self, configFile):
     import ConfigParser
-    cp = ConfigParser.SafeConfigParser({'monitor_paths': '*.py'})
+    cp = ConfigParser.SafeConfigParser({'monitor_paths': '*.py', 'logging': 'warning'})
     if (os.access(configFile, os.F_OK)):
       cp.read(configFile)
-    print cp.get('nosy', 'monitor_paths')
-    for path in cp.get('nosy', 'monitor_paths').split():
-      self.paths += glob.glob(path) 
+
+    level = LEVELS.get(cp.get('nosy', 'logging'), logging.NOTSET)
+    logging.basicConfig(level=level)
+
+    p = cp.get('nosy', 'monitor_paths')
+    logger.info("Monitoring paths: " + p)
+    for path in p.split():
+      self.paths += glob.glob(path)
 
   '''
   Watch for changes in all monitored files. If changes, run nosetests.

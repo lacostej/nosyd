@@ -5,6 +5,9 @@ Features:
 * notify using Gnome's notification library
 * per project configuration to override defaults
 
+Misc:
+* logging
+
 Usage:
 * install in path and run nosy.py
 * optionaly create a .nosy file in your local directory
