@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # By Jeff Winkler, http://jeffwinkler.net
 # By Jerome Lacoste, jerome@coffeebreaks.org
 
