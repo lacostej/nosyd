@@ -24,7 +24,12 @@ class Nosy:
 
   def importConfig(self, configFile):
     import ConfigParser
-    cp = ConfigParser.SafeConfigParser({'monitor_paths': '*.py', 'logging': 'warning', 'check_period' : '1'})
+    cp = ConfigParser.SafeConfigParser()
+    cp.add_section('nosy')
+    cp.set('nosy', 'monitor_paths', '*.py')
+    cp.set('nosy', 'logging', 'warning')
+    cp.set('nosy', 'check_period', '1')
+
     if (os.access(configFile, os.F_OK)):
       cp.read(configFile)
 
