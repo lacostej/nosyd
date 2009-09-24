@@ -15,6 +15,9 @@ LEVELS = {'debug': logging.DEBUG,
 
 pwd = os.path.abspath(".")
 
+'''
+Watch for changes in all monitored files. If changes, run nosetests.
+ '''
 class Nosy:
 
   paths = []
@@ -33,9 +36,6 @@ class Nosy:
     for path in p.split():
       self.paths += glob.glob(path)
 
-  '''
-  Watch for changes in all monitored files. If changes, run nosetests.
-  '''
   def checkSum(self):
     ''' Return a long which can be used to know if any files from the paths variable have changed.'''
     val = 0
@@ -45,41 +45,41 @@ class Nosy:
       val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
     return val
 
-def notify(msg1,msg2):
+  def notify(self,msg1,msg2):
     if not pynotify.init("Markup"):
-        return
+      return
     n = pynotify.Notification(msg1, msg2)
     if not n.show():
-        print "Failed to send notification"
+      print "Failed to send notification"
 
-def notifyFailure():
-    notify(os.path.basename(pwd) + " build failed.", pwd + ": nosetests failed")
+  def notifyFailure(self):
+    self.notify(os.path.basename(pwd) + " build failed.", pwd + ": nosetests failed")
 
-def notifySuccess():
-    notify(os.path.basename(pwd) + " build successfull.", pwd + ": nosetests success")
+  def notifySuccess(self):
+    self.notify(os.path.basename(pwd) + " build successfull.", pwd + ": nosetests success")
 
-def run(nosy):
-  val=0
-  oldRes = 0
-  firstBuild = True
-  while (True):
-    keepOnNotifyingFailures = True
-    newVal = nosy.checkSum()
-    if newVal != val:
-      val=newVal
-      res = os.system ('nosetests')
+  def run(self):
+    val=0
+    oldRes = 0
+    firstBuild = True
+    while (True):
+      keepOnNotifyingFailures = True
+      newVal = self.checkSum()
+      if newVal != val:
+        val=newVal
+        res = os.system ('nosetests')
 #        print "res:" + str(res)
-      if (res != 0):
-        if (oldRes == 0 or keepOnNotifyingFailures):
-          notifyFailure()
-      else:
-        if (oldRes != 0 or firstBuild):
-          notifySuccess()
-      firstBuild = False
-  time.sleep(1)
-  oldRes = res
+        if (res != 0):
+          if (oldRes == 0 or keepOnNotifyingFailures):
+            self.notifyFailure()
+        else:
+          if (oldRes != 0 or firstBuild):
+            self.notifySuccess()
+        firstBuild = False
+      time.sleep(1)
+    oldRes = res
 
 if __name__ == '__main__':
   nosy = Nosy()
   nosy.importConfig(r".nosy")
-  run(nosy)
+  nosy.run()
