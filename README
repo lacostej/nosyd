@@ -1,4 +1,8 @@
 An extension over Jeff Winkler's original ([1]) nosy to do personnal CI.
 
+Alternatives:
+* an improved version of nosy
+
 Links
 [1] http://jeffwinkler.net/2006/04/27/keeping-your-nose-green/
+[2] http://douglatornell.ca/software/python/Nosy-1.0.tar.gz
