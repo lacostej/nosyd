@@ -243,10 +243,11 @@ class NosyProject:
 #    print "checksum " + str(val)
     return val
 
-  def notify(self,msg1,msg2):
+  def notify(self,msg1,msg2,urgency=pynotify.URGENCY_LOW):
     if not pynotify.init("Markup"):
       return
     n = pynotify.Notification(msg1, msg2)
+    n.set_urgency(urgency)
     if not n.show():
       print "Failed to send notification"
 
@@ -257,7 +258,7 @@ class NosyProject:
       msg2 += ", ".join(r.list_failure_names())
     else:
       msg1, msg2 = os.path.basename(self.project_dir) + " build failed.", self.project_dir + ": build failed."
-    self.notify(msg1, msg2)
+    self.notify(msg1, msg2, pynotify.URGENCY_CRITICAL)
 
   def notifySuccess(self):
     r = parse_xunit_results('nosetests.xml')
@@ -273,7 +274,7 @@ class NosyProject:
       msg1, msg2 = os.path.basename(self.project_dir) + " build fixed.", self.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
     else:
       msg1, msg2 = os.path.basename(self.project_dir) + " build Fixed.", self.project_dir + ": build fixed."
-    self.notify(msg1, msg2)
+    self.notify(msg1, msg2, pynotify.URGENCY_NORMAL)
 
   def build(self):
     os.chdir(self.project_dir)
