@@ -10,7 +10,7 @@ Features:
 * logging
 
 Usage:
-* install in path and run nosyd.py. You probably want to 
+* install in path and run nosyd.py.
 * optionaly create a .nosy file in your project's directory. If that file changes, the file will be reloaded at next build.
 * add/remove the monitored project by using --add/--remove [path] options
 ** you can also do it manually by linking into the .nosyd/jobs/ directory
