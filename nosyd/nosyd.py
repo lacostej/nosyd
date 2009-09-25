@@ -54,18 +54,21 @@ def parse_xunit_results(filename):
   try :
     from xml.dom import minidom
     xmldoc = minidom.parse(filename)
-    testsuite = xmldoc.firstChild
-    tcs = testsuite.getElementsByTagName('testcase')
+    ts = xmldoc.firstChild
+    tcs = ts.getElementsByTagName('testcase')
     testcases = []
     for tc in tcs:
       failure = None
       if (len(tc.childNodes) > 0):
         failureNode = tc.childNodes[0]
-        failure = Failure(failureNode.attributes['type'].value, failureNode.childNodes[0].data)
-      testcases.append(TestCase(tc.attributes['classname'].value, tc.attributes['name'].value, failure))
-    return XunitTestSuite(testsuite.attributes['name'].value, int(testsuite.attributes['tests'].value), int(testsuite.attributes['errors'].value), int(testsuite.attributes['failures'].value), int(testsuite.attributes['skip'].value), testcases)  
+        failure = Failure(attr_val(failureNode, 'type'), failureNode.childNodes[0].data)
+      testcases.append(TestCase(attr_val(tc, 'classname'), attr_val(tc, 'name'), failure))
+    return XunitTestSuite(attr_val(ts, 'name'), int(attr_val(ts, 'tests')), int(attr_val(ts, 'errors')), int(attr_val(ts, 'failures')), int(attr_val(ts, 'skip')), testcases)
   except IOError:
     return None
+
+def attr_val(node, attr_name):
+  return node.attributes[attr_name].value
 
 #from xunit import *
 ############################################################################
