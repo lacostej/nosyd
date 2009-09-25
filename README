@@ -1,7 +1,9 @@
-An extension over Jeff Winkler's original ([1]) nosy to do personnal CI.
+Nosyd is a _minimalist_ personal command line friendly CI server, initialy geared towards building python projects (hence the name).
+
+Nosyd is a daemonization of Jeff Wrinkler's original nosy script [1].
 
 Features:
-* automatically run nosetest whenever one of the monitored files has changed
+* automatically run nosetest whenever one of the monitored files of the monitored projects has changed
 * notify using Gnome's notification library
 * per project configuration to override defaults
 
@@ -9,12 +11,12 @@ Misc:
 * logging
 
 Usage:
-* install in path and run nosy.py
-* optionaly create a .nosy file in your local directory
+* install in path and run nosyd.py. You probably want to 
+* optionaly create a .nosy file in your project's directory. If that file changes, the file will be reloaded at next build.
+* add your projects by linking into the .nosyd/jobs/ directory
+  cd ~/.nosyd/jobs/
+  ln -s /path/to/your/project .
 
-Alternatives:
-* another improved version of nosy [2]
-
-Links
+Links:
 [1] http://jeffwinkler.net/2006/04/27/keeping-your-nose-green/
 [2] http://douglatornell.ca/software/python/Nosy-1.0.tar.gz

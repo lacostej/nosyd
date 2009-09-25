@@ -1,15 +1,15 @@
-import nosy
+import nosyd
 
-class TestNosy:
+class TestNosyd:
 
   def setUp(self):
-    self.n = nosy.Nosy()
+    self.n = nosyd.NosyProject()
 
   def tearDown(self):
     self.n = None
 
   def test_parse_xunit_results(self):
-    r = nosy.parse_xunit_results("tests/data/nosetests_1.xml")
+    r = nosyd.parse_xunit_results("tests/data/nosetests_1.xml")
     print r
     assert r.errors == 0
     assert r.failures == 1
@@ -21,5 +21,5 @@ class TestNosy:
     assert r.list_failure_names()[0] == "tests.test_nosy.TestNosy.test_xxx"
 
   def test_parse_non_existing_file(self):
-    r = nosy.parse_xunit_results("tests/data/IDONTEXIST.xml")
+    r = nosyd.parse_xunit_results("tests/data/IDONTEXIST.xml")
     assert r == None
