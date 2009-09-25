@@ -338,7 +338,6 @@ def usage():
 
 if __name__ == '__main__':
   import sys
-  # FIXME if --simple, runs a NosyProject instead
   command = None
   if len(sys.argv) > 1 and sys.argv[1]:
     command = sys.argv[1]
