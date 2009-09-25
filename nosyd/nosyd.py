@@ -191,10 +191,16 @@ class Nosyd:
           project.val = newVal
           return project
       else: # new project
+        logger.info("Project " + pn + " isn't yet monitored. Adding to build queue.")
         project = NosyProject(self.resolved_project_dir(pn))
         project.val = project.checkSum()
         self.projects[pn] = project
         return project
+    # remove unmonitored projects
+    for monitored_pn in self.projects.keys():
+      if (not monitored_pn in project_names):
+        logger.info("Project " + monitored_pn + " isn't monitored anymore. Removing from build queue.")
+        del self.projects[monitored_pn]
     return None
     
 '''
