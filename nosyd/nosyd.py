@@ -92,7 +92,7 @@ class Nosyd:
   projects = {}
 
   def __init__(self):
-    self.check_period = 10
+    self.check_period = 1
     from user import home
     self.nosyd_dir = str(home) + "/.nosyd"
     self.createDirStructure()
