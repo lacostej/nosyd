@@ -192,6 +192,7 @@ class Nosyd:
           return project
       else: # new project
         project = NosyProject(self.resolved_project_dir(pn))
+        project.val = project.checkSum()
         self.projects[pn] = project
         return project
     return None
@@ -200,8 +201,6 @@ class Nosyd:
 Watch for changes in all monitored files. If changes, run nosetests.
  '''
 class NosyProject:
-
-  paths = []
 
   def __init__(self, project_dir = None):
     self.project_dir = project_dir
@@ -214,6 +213,7 @@ class NosyProject:
     self.oldRes = 0
     self.firstBuild = True
     self.keepOnNotifyingFailures = True
+    self.importConfig(self.project_dir + "/.config")
 
   def importConfig(self, configFile):
     # config specific properties
@@ -232,8 +232,9 @@ class NosyProject:
 
     p = cp.get('nosy', 'monitor_paths')
     logger.info("Monitoring paths: " + p)
+    self.paths = []
     for path in p.split():
-      self.paths += glob.glob(path)
+      self.paths += glob.glob(self.project_dir + "/" + path)
 
     self.checkPeriod = cp.getint('nosy', 'check_period')
 
@@ -241,6 +242,8 @@ class NosyProject:
     ''' Return a long which can be used to know if any files from the paths variable have changed.'''
     val = 0
 
+    if len(self.paths) == 0:
+      logging.warning("No monitored paths for project_dir " + self.project_dir)
     for f in self.paths:
       stats = os.stat (f)
       val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
@@ -281,9 +284,10 @@ class NosyProject:
     self.notify(msg1, msg2, pynotify.URGENCY_NORMAL)
 
   def build(self):
+    self.importConfig(self.project_dir + "/.config")
     os.chdir(self.project_dir)
     res = os.system ('nosetests --with-xunit')
-#        print "res:" + str(res)
+#    print "res:" + str(res)
     return res
 
   def buildAndNotify(self):
@@ -301,7 +305,6 @@ class NosyProject:
 
   def run(self):
     'allows to run nosy standalone'
-    self.importConfig(r".nosy")
     while (True):
       newVal = self.checkSum()
       if newVal != self.val:
