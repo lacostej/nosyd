@@ -123,11 +123,12 @@ class Nosyd:
     if (path in paths):
 #      if (not os.path.exists(path)):
 #        print "Path " + path + " doesn't exist. Aborting"
-      if (not os.path.islink(path)):
+      project_link = self.project_dir(os.path.basename(path))
+      if (not os.path.islink(project_link)):
         print "Path " + path + " not a link. Aborting"
+        return
       print "Un-monitoring path " + path
-      # note: this assumes that link dir == basename(project_dir). We could search for it otherwise
-      os.unlink(self.project_dir(os.path.basename(path)))
+      os.unlink(project_link)
     else:
       print "Path " + path + " not monitored. So not removed"
 
