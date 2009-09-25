@@ -90,12 +90,50 @@ The daemon
 '''
 class Nosyd:
   projects = {}
-  def initialize(self):
-    self.check_period = 1
+
+  def __init__(self):
+    self.check_period = 10
     from user import home
     self.nosyd_dir = str(home) + "/.nosyd"
     self.createDirStructure()
-    #logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
+
+  def list(self):
+    paths = self.resolved_project_paths()
+    print "nosyd monitors " + str(len(paths)) + " project(s)"
+    for p in paths:
+      print p
+
+  def add(self, path=None):
+    if (not path):
+      path = "."
+    path = os.path.abspath(path)
+    paths = self.resolved_project_paths()
+    if (path in paths):
+      print " Path " + path + " already monitored. Not added"
+    else:
+      if (not os.path.exists(path)):
+        print "Path " + path + " doesn't exist. Aborting"
+      if (not os.path.isdir(path)):
+        print "Path " + path + " not a directory. Aborting"
+      print "Monitoring path " + path
+      os.symlink(path, self.project_dir(os.path.basename(path)))
+
+  def remove(self, path=None):
+    if (not path):
+      path = "."
+    path = os.path.abspath(path)
+    paths = self.resolved_project_paths()
+    if (path in paths):
+#      if (not os.path.exists(path)):
+#        print "Path " + path + " doesn't exist. Aborting"
+      if (not os.path.islink(path)):
+        print "Path " + path + " not a link. Aborting"
+      print "Un-monitoring path " + path
+      # note: this assumes that link dir == basename(project_dir). We could search for it otherwise
+      os.unlink(self.project_dir(os.path.basename(path)))
+    else:
+      print "Path " + path + " not monitored. So not removed"
 
   def jobs_dir(self):
     return self.nosyd_dir + "/jobs"
@@ -121,7 +159,6 @@ class Nosyd:
     self.createDirectoryIfNecessary(self.jobs_dir(), "nosyd jobs directory")
     
   def run(self):
-    self.initialize()
     while (True):
       p = self.getNextProjectToBuild()
       print "Building " + p.project_dir
@@ -137,8 +174,14 @@ class Nosyd:
   def is_project_link(self, path):
     return os.path.islink(self.project_dir(path))
 
+  def project_names(self):
+    return filter(self.is_project_link, os.listdir(self.jobs_dir()))
+
+  def resolved_project_paths(self):
+    return map(self.resolved_project_dir, self.project_names())
+
   def updateProjectsChecksums(self):
-    project_names = filter(self.is_project_link, os.listdir(self.jobs_dir()))
+    project_names = self.project_names()
     logger.debug(str(len(project_names)) + " project(s) monitored")
     logger.debug(project_names)
     # keep links
@@ -268,12 +311,50 @@ class NosyProject:
         res = self.buildAndNotify()
       time.sleep(self.checkPeriod)
 
+def usage():
+  print "Usage:"
+  print "  " + os.path.basename(sys.argv[0]) + " [OPTION] - minimal personal CI server"
+  print ""
+  print "Help options:"
+  print "  -?, --help\t\t\tShow help options"
+  print ""
+  print "Application options:"
+  print "  --local [path]\t\tRun nosy (standalone) on the current directory"
+  print "  --add   [path]\t\tMonitor the specified or current directory"
+  print "  --remove      \t\t\tUn-monitor the specified or current directory"
+  print "  --list        \t\tList the project monitored"
+  print ""
+  print "Default behavior:"
+  print "            \t\t\tStart nosyd"
+  print ""
+  print "Report bugs to <jerome.lacoste@gmail.com>"
+
 if __name__ == '__main__':
   import sys
   # FIXME if --simple, runs a NosyProject instead
-  if (len(sys.argv) > 1 and sys.argv[1] == "--local"):
+  command = None
+  if len(sys.argv) > 1 and sys.argv[1]:
+    command = sys.argv[1]
+  if (command == "--local"):
     nosy = NosyProject()
     nosy.run()
+  elif (command == "--list"):
+    nosyd = Nosyd()
+    nosyd.list()
+  elif (command == "--add"):
+    nosyd = Nosyd()
+    d = None
+    if len(sys.argv) > 2 and sys.argv[2]:
+      d = sys.argv[2]
+    nosyd.add(d)
+  elif (command == "--remove"):
+    nosyd = Nosyd()
+    d = None
+    if len(sys.argv) > 2 and sys.argv[2]:
+      d = sys.argv[2]
+    nosyd.remove(d)
+  elif (command == "--help" or command == "-?" or command != None):
+    usage()
   else:
     nosyd = Nosyd()
     try:

@@ -6,14 +6,14 @@ Features:
 * automatically run nosetest whenever one of the monitored files of the monitored projects has changed
 * notify using Gnome's notification library
 * per project configuration to override defaults
-
-Misc:
+* persists daemon configuration using files and links
 * logging
 
 Usage:
 * install in path and run nosyd.py. You probably want to 
 * optionaly create a .nosy file in your project's directory. If that file changes, the file will be reloaded at next build.
-* add your projects by linking into the .nosyd/jobs/ directory
+* add/remove the monitored project by using --add/--remove [path] options
+** you can also do it manually by linking into the .nosyd/jobs/ directory
   cd ~/.nosyd/jobs/
   ln -s /path/to/your/project .
 
