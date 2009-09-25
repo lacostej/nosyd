@@ -219,7 +219,7 @@ class NosyProject:
     self.oldRes = 0
     self.firstBuild = True
     self.keepOnNotifyingFailures = True
-    self.importConfig(self.project_dir + "/.config")
+    self.importConfig(self.project_dir + "/.nosy")
 
   def importConfig(self, configFile):
     # config specific properties
@@ -290,7 +290,7 @@ class NosyProject:
     self.notify(msg1, msg2, pynotify.URGENCY_NORMAL)
 
   def build(self):
-    self.importConfig(self.project_dir + "/.config")
+    self.importConfig(self.project_dir + "/.nosy")
     os.chdir(self.project_dir)
     res = os.system ('nosetests --with-xunit')
 #    print "res:" + str(res)
