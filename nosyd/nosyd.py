@@ -88,11 +88,28 @@ class Nosyd:
   projects = {}
 
   def __init__(self):
-    self.check_period = 1
     from user import home
     self.nosyd_dir = str(home) + "/.nosyd"
     self.createDirStructure()
-    logging.basicConfig(level=logging.INFO)
+    self.importConfig(self.nosyd_dir + "/config")
+
+  def importConfig(self, configFile):
+    import ConfigParser
+    cp = ConfigParser.SafeConfigParser()
+    cp.add_section('nosyd')
+    cp.set('nosyd', 'logging', 'warning')
+    cp.set('nosyd', 'check_period', '1')
+
+    if (os.access(configFile, os.F_OK)):
+      cp.read(configFile)
+
+    level = LEVELS.get(cp.get('nosyd', 'logging'), logging.NOTSET)
+    logging.basicConfig(level=level)
+    logging.getLogger('').setLevel(level)
+    logger.debug("reading config... level = " + str(level))
+
+    self.check_period = cp.getint('nosyd', 'check_period')
+    self.config = cp
 
   def list(self):
     paths = self.resolved_project_paths()
@@ -158,11 +175,12 @@ class Nosyd:
   def run(self):
     while (True):
       p = self.getNextProjectToBuild()
-      print "Building " + p.project_dir
+      logger.info("Building " + p.project_dir)
       p.buildAndNotify()
 
   def getNextProjectToBuild(self):
     while (True):
+      self.importConfig(self.nosyd_dir + "/config")
       p = self.updateProjectsChecksums()
       if (p):
         return p
@@ -192,7 +210,7 @@ class Nosyd:
           return project
       else: # new project
         logger.info("Project " + pn + " isn't yet monitored. Adding to build queue.")
-        project = NosyProject(self.resolved_project_dir(pn))
+        project = NosyProject(self.resolved_project_dir(pn), pn)
         project.val = project.checkSum()
         self.projects[pn] = project
         return project
@@ -208,11 +226,14 @@ Watch for changes in all monitored files. If changes, run nosetests.
  '''
 class NosyProject:
 
-  def __init__(self, project_dir = None):
+  def __init__(self, project_dir = None, project_name = None):
     self.project_dir = project_dir
+    self.project_name = project_name
+
     if (self.project_dir == None):
       pwd = os.path.abspath(".")
       self.project_dir = pwd
+      self.project_name = "local"
 
     # build specific properties
     self.val = 0
@@ -236,8 +257,11 @@ class NosyProject:
     level = LEVELS.get(cp.get('nosy', 'logging'), logging.NOTSET)
     logging.basicConfig(level=level)
 
+    self.logger = logging.getLogger('nosy-' + self.project_name)
+    self.logger.setLevel(level)
+
     p = cp.get('nosy', 'monitor_paths')
-    logger.info("Monitoring paths: " + p)
+    self.logger.debug("Monitoring paths: " + p)
     self.paths = []
     for path in p.split():
       self.paths += glob.glob(self.project_dir + "/" + path)
