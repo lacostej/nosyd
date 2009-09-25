@@ -17,16 +17,6 @@ class NosydException(Exception):
 ############################################################################
 # inline the imports until I find out how to properly package a python app #
 ############################################################################
-def findall(seq, f):
-    """Return all the element in seq where f(item) == True."""
-    result = []
-    for element in seq:
-      if f(element):
-        result.append(element)
-    return result
-
-#from utils import *
-
 class XunitTestSuite:
   def __init__(self, name, tests, errors, failures, skip, testcases):
     self.name = name
@@ -39,8 +29,11 @@ class XunitTestSuite:
   def __str__(self):
     return "XunitTestSuite: %s %s %s %s %s" % (self.name , self.tests, self.errors, self.failures, self.skip)
 
+  def failed_testcase(self, tc):
+    return tc.failed()
+
   def list_failure_names(self):
-    failed_testcases = findall(self.testcases, lambda tc : tc.failed())
+    failed_testcases = filter(self.failed_testcase, self.testcases)
     return [ el.name for el in failed_testcases ]
 
 class TestCase:
