@@ -139,17 +139,18 @@ class Nosyd:
     from user import home
     self.nosyd_dir = os.path.join(str(home), ".nosyd")
     self._create_nosyd_dir_structure()
-    self._import_config(os.path.join(self.nosyd_dir, "config"))
+    self._import_config()
 
-  def _import_config(self, configFile):
+  def _import_config(self):
+    config_file = os.path.join(self.nosyd_dir, "config")
     import ConfigParser
     cp = ConfigParser.SafeConfigParser()
     cp.add_section('nosyd')
     cp.set('nosyd', 'logging', 'warning')
     cp.set('nosyd', 'check_period', '1')
 
-    if (os.access(configFile, os.F_OK)):
-      cp.read(configFile)
+    if (os.access(config_file, os.F_OK)):
+      cp.read(config_file)
 
     level = LEVELS.get(cp.get('nosyd', 'logging'), logging.NOTSET)
     logging.basicConfig(level=level)
@@ -248,7 +249,7 @@ class Nosyd:
 
   def _get_next_project_to_build(self):
     while (True):
-      self._import_config(os.path.join(self.nosyd_dir, "config"))
+      self._import_config()
       p = self._update_projects_checksums()
       if (p):
         return p
@@ -326,9 +327,10 @@ class NosyProject:
     self.oldRes = 0
     self.firstBuild = True
     self.keepOnNotifyingFailures = True
-    self._import_config(os.path.join(self.project_dir, ".nosy"))
+    self._import_config()
 
-  def _import_config(self, configFile):
+  def _import_config(self):
+    config_file = os.path.join(self.project_dir, ".nosy")
     # config specific properties
     import ConfigParser
     cp = ConfigParser.SafeConfigParser()
@@ -337,8 +339,8 @@ class NosyProject:
     cp.set('nosy', 'logging', 'warning')
     cp.set('nosy', 'check_period', '1')
 
-    if (os.access(configFile, os.F_OK)):
-      cp.read(configFile)
+    if (os.access(config_file, os.F_OK)):
+      cp.read(config_file)
 
     self.type = cp.get('nosy', 'type')
 
@@ -409,7 +411,7 @@ class NosyProject:
     self.notify(msg1, msg2, pynotify.URGENCY_NORMAL)
 
   def build(self):
-    self._import_config(os.path.join(self.project_dir, ".nosy"))
+    self._import_config()
     os.chdir(self.project_dir)
     res, test_results = self.builder.build()
     self.logger.debug("build res:" + str(res))
