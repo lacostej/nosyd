@@ -8,6 +8,8 @@ import pynotify
 import logging
 import re
 
+version="0.0.3"
+
 #######################################################################################
 # Nosyd is a all in one file as I don't know yet how to properly package a python app #
 #######################################################################################
@@ -492,7 +494,7 @@ class NosydOptionParser(OptionParser):
     file.write("\nComments & bugs to <jerome.lacoste@gmail.com>\n")
 
 def main():
-  parser = NosydOptionParser(version='%prog 0.0.2')
+  parser = NosydOptionParser(version='%prog ' + version)
   parser.add_option("-a", "--add", default=None, action="store_true",
                   help="Start monitoring the specified or current directory")
   parser.add_option("-r", "--remove", action="store_true",
