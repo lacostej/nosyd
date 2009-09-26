@@ -253,12 +253,17 @@ class NosyProject:
     self.firstBuild = True
     self.keepOnNotifyingFailures = True
     self.importConfig(self.project_dir + "/.nosy")
+    if (self.type == "trial"):
+      self.builder = TrialBuilder()
+    else:
+      self.builder = NoseBuilder()
 
   def importConfig(self, configFile):
     # config specific properties
     import ConfigParser
     cp = ConfigParser.SafeConfigParser()
     cp.add_section('nosy')
+    cp.set('nosy', 'type', 'nose')
     cp.set('nosy', 'monitor_paths', '*.py')
     cp.set('nosy', 'logging', 'warning')
     cp.set('nosy', 'check_period', '1')
@@ -276,6 +281,7 @@ class NosyProject:
       self.paths += glob.glob(self.project_dir + "/" + path)
 
     self.checkPeriod = cp.getint('nosy', 'check_period')
+    self.type = cp.get('nosy', 'type')
 
   def checkSum(self):
     ''' Return a long which can be used to know if any files from the paths variable have changed.'''
@@ -325,7 +331,7 @@ class NosyProject:
   def build(self):
     self.importConfig(self.project_dir + "/.nosy")
     os.chdir(self.project_dir)
-    res = os.system ('nosetests --with-xunit')
+    res = self.builder.build()
 #    print "res:" + str(res)
     return res
 
@@ -350,6 +356,17 @@ class NosyProject:
         self.val = newVal
         res = self.buildAndNotify()
       time.sleep(self.checkPeriod)
+
+class Builder:
+  pass
+
+class TrialBuilder:
+  def build(self):
+    return os.system ('trial')
+
+class NoseBuilder(Builder):
+  def build(self):
+    return os.system ('nosetests --with-xunit')
 
 from optparse import OptionParser
 
