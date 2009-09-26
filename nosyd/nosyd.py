@@ -207,8 +207,12 @@ class Nosyd:
           project.val = newVal
           return project
       else: # new project
+        project_dir = self.resolved_project_dir(pn)
+        if (not os.path.exists(project_dir)):
+          logger.debug("Project dir " + project_dir + " doesn't exist. Skipping")
+          continue
         logger.info("Project " + pn + " isn't yet monitored. Adding to build queue.")
-        project = NosyProject(self.resolved_project_dir(pn))
+        project = NosyProject(project_dir)
         project.val = project.checkSum()
         self.projects[pn] = project
         return project
