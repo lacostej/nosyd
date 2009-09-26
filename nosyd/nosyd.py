@@ -13,6 +13,18 @@ class NosydException(Exception):
   def __str__(self):
     return repr(self.value)
 
+'''
+An a-la ant FileSet class that allows to identify groups of files that matches patterns. Supports recursivity
+'''
+class FileSet:
+  def __init__(self, dir, pattern):
+    self.dir = dir
+    self.pattern = pattern
+
+  def find_paths(self):
+    # FIXME implement recursivity
+    return glob.glob(self.dir + "/" + self.pattern)
+
 
 ############################################################################
 # inline the imports until I find out how to properly package a python app #
@@ -289,8 +301,8 @@ class NosyProject:
     p = cp.get('nosy', 'monitor_paths')
     logger.info("Monitoring paths: " + p)
     self.paths = []
-    for path in p.split():
-      self.paths += glob.glob(self.project_dir + "/" + path)
+    for pattern in p.split():
+      self.paths += FileSet(self.project_dir, pattern).find_paths()
 
     self.checkPeriod = cp.getint('nosy', 'check_period')
 
@@ -383,7 +395,7 @@ class Maven2Builder(Builder):
   def build(self):
     res = os.system ('mvn test')
     test_results = None
-    surefire_results = glob.glob('target/surefire-reports/TEST-*.xml')
+    surefire_results = FileSet('target/surefire-reports' + '/TEST-*.xml').find_paths()
     for result in surefire_results:
       r = parse_surefire_results(result)
       if (r == None):
