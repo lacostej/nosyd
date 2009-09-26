@@ -100,6 +100,14 @@ class Nosyd:
     for p in paths:
       print p
 
+  def clean(self):
+    pns = self.project_names()
+    for pn in pns:
+      path = self.resolved_project_dir(pn)
+      if not os.path.exists(path):
+        print "Removing MISSING project: " + pn
+        os.unlink(self.project_dir(pn))
+
   def local(self):
     np = NosyProject()
     np.run()
@@ -359,6 +367,8 @@ if __name__ == '__main__':
                   help="Stop monitoring the specified or current directory")
   parser.add_option("-l", "--list", dest="list", action="store_true", default=False,
                   help="List the monitored projects")
+  parser.add_option("-c", "--clean", dest="clean", action="store_true", default=False,
+                  help="Clean the projects nosyd can't track anymore (links point to nowhere)")
   parser.add_option("-1", "--local", dest="local", action="store_true", default=False,
                   help="Run the standalone nosyd on the specified or current directory")
 
@@ -373,14 +383,18 @@ if __name__ == '__main__':
     nb_opts += 1
   if (options.local):
     nb_opts += 1
+  if (options.clean):
+    nb_opts += 1
   if (nb_opts > 1):
-    parser.error("options --add, --remove, -list and --local are mutually exclusive")
+    parser.error("options --add, --clean, --remove, -list and --local are mutually exclusive")
 
   nosyd = Nosyd()
   if (options.add):
     nosyd.add(args)
   elif (options.remove):
     nosyd.remove(args)
+  elif (options.clean):
+    nosyd.clean()
   elif (options.list):
     nosyd.list()
   elif (options.local):
