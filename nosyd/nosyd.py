@@ -98,7 +98,7 @@ class Nosyd:
     paths = self.resolved_project_paths()
     print "nosyd monitors " + str(len(paths)) + " project(s)"
     for p in paths:
-      print p
+      print p + self._status_dir_str(p)
 
   def clean(self):
     pns = self.project_names()
@@ -107,6 +107,11 @@ class Nosyd:
       if not os.path.exists(path):
         print "Removing MISSING project: " + pn
         os.unlink(self.project_dir(pn))
+
+  def _status_dir_str(self, path):
+    if (not os.path.exists(path)):
+      return "\t[MISSING]"
+    return ""
 
   def local(self):
     np = NosyProject()
