@@ -410,14 +410,14 @@ class Builder:
 
 class TrialBuilder:
   def get_default_monitored_paths(self):
-    return "**/*.py"
+    return "*.py **/*.py"
 
   def build(self):
     return os.system ('trial'), None
 
 class NoseBuilder(Builder):
   def get_default_monitored_paths(self):
-    return "**/*.py"
+    return "*.py **/*.py"
 
   def build(self):
     res = os.system ('nosetests --with-xunit')
