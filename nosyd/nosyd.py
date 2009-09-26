@@ -395,7 +395,7 @@ class Maven2Builder(Builder):
   def build(self):
     res = os.system ('mvn test')
     test_results = None
-    surefire_results = FileSet('target/surefire-reports' + '/TEST-*.xml').find_paths()
+    surefire_results = FileSet('target/surefire-reports', '/TEST-*.xml').find_paths()
     for result in surefire_results:
       r = parse_surefire_results(result)
       if (r == None):
