@@ -489,9 +489,7 @@ class NosydOptionParser(OptionParser):
     file.write("\t\tStart nosyd\n")
     file.write("\nComments & bugs to <jerome.lacoste@gmail.com>\n")
 
-if __name__ == '__main__':
-  import sys
-
+def main():
   parser = NosydOptionParser(version='%prog 0.0.2')
   parser.add_option("-a", "--add", default=None, action="store_true",
                   help="Start monitoring the specified or current directory")
@@ -536,3 +534,8 @@ if __name__ == '__main__':
       nosyd.run()
     except KeyboardInterrupt:
       logger.info("Aborting...")
+
+if __name__ == '__main__':
+  import sys
+  main()
+
