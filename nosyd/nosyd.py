@@ -328,8 +328,7 @@ class NosyProject:
   def build(self):
     self.importConfig(self.project_dir + "/.nosy")
     os.chdir(self.project_dir)
-    res = self.builder.build()
-    test_results = parse_xunit_results('nosetests.xml')
+    res, test_results = self.builder.build()
 #    print "res:" + str(res)
     return res, test_results
 
@@ -356,15 +355,18 @@ class NosyProject:
       time.sleep(self.checkPeriod)
 
 class Builder:
+  '''A builder has one method, build() that returns [res, test_results]. Res is 0 if the build passed and test_results contains a XunitTestSuite instance or None'''
   pass
 
 class TrialBuilder:
   def build(self):
-    return os.system ('trial')
+    return os.system ('trial'), None
 
 class NoseBuilder(Builder):
   def build(self):
-    return os.system ('nosetests --with-xunit')
+    res = os.system ('nosetests --with-xunit')
+    test_results = parse_xunit_results('nosetests.xml')
+    return res, test_results
 
 from optparse import OptionParser
 
