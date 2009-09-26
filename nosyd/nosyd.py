@@ -375,7 +375,7 @@ class NosyProject:
     for f in self.paths:
       stats = os.stat (f)
       val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
-#    print "checksum " + str(val)
+    self.logger.debug("checksum " + str(val))
     return val
 
   def notify(self,msg1,msg2,urgency=pynotify.URGENCY_LOW):
@@ -412,7 +412,7 @@ class NosyProject:
     self._import_config(os.path.join(self.project_dir, ".nosy"))
     os.chdir(self.project_dir)
     res, test_results = self.builder.build()
-#    print "res:" + str(res)
+    self.logger.debug("build res:" + str(res))
     return res, test_results
 
   def buildAndNotify(self):
