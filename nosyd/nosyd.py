@@ -303,8 +303,7 @@ class NosyProject:
     if not n.show():
       print "Failed to send notification"
 
-  def notifyFailure(self):
-    r = parse_xunit_results('nosetests.xml')
+  def notifyFailure(self, r):
     if (r):
       msg1, msg2 = os.path.basename(self.project_dir) + " build failed.", self.project_dir + ": " + str(r.failures) + " tests failed and " + str(r.errors) + " errors: "
       msg2 += ", ".join(r.list_failure_names())
@@ -312,16 +311,14 @@ class NosyProject:
       msg1, msg2 = os.path.basename(self.project_dir) + " build failed.", self.project_dir + ": build failed."
     self.notify(msg1, msg2, pynotify.URGENCY_CRITICAL)
 
-  def notifySuccess(self):
-    r = parse_xunit_results('nosetests.xml')
+  def notifySuccess(self, r):
     if (r):
       msg1, msg2 = os.path.basename(self.project_dir) + " build successfull.", self.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
     else:
       msg1, msg2 = os.path.basename(self.project_dir) + " build successful.", self.project_dir + ": build successful."
     self.notify(msg1, msg2)
 
-  def notifyFixed(self):
-    r = parse_xunit_results('nosetests.xml')
+  def notifyFixed(self, r):
     if (r):
       msg1, msg2 = os.path.basename(self.project_dir) + " build fixed.", self.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
     else:
@@ -332,19 +329,20 @@ class NosyProject:
     self.importConfig(self.project_dir + "/.nosy")
     os.chdir(self.project_dir)
     res = self.builder.build()
+    test_results = parse_xunit_results('nosetests.xml')
 #    print "res:" + str(res)
-    return res
+    return res, test_results
 
   def buildAndNotify(self):
-    res = self.build()
+    res, test_results = self.build()
     if (res != 0):
       if (self.oldRes == 0 or self.keepOnNotifyingFailures):
-        self.notifyFailure()
+        self.notifyFailure(test_results)
     else:
       if (self.firstBuild):
-        self.notifySuccess()
+        self.notifySuccess(test_results)
       elif (self.oldRes != 0):
-        self.notifyFixed()
+        self.notifyFixed(test_results)
     self.firstBuild = False
     self.oldRes = res
 
