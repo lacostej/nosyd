@@ -133,6 +133,7 @@ LEVELS = {'debug': logging.DEBUG,
 The daemon
 '''
 class Nosyd:
+  # this is our build_queue :) We have only one builder and don't prioritize the builds. Just build the first one that has changed
   projects = {}
 
   def __init__(self):
