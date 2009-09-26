@@ -1,3 +1,2 @@
-* support recursive directories. Maybe **/*.py ? Also define defaults for other builders
 * make sure notification are not displayed that long
 * implement some sort of --restart ?? http://www.zetadev.com/software/lib537/1.0a1/doc/html/module-restarter.html
