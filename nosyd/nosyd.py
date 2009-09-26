@@ -64,7 +64,7 @@ def parse_xunit_results(filename):
         failure = Failure(attr_val(failureNode, 'type'), failureNode.childNodes[0].data)
       testcases.append(TestCase(attr_val(tc, 'classname'), attr_val(tc, 'name'), failure))
     return XunitTestSuite(attr_val(ts, 'name'), int(attr_val(ts, 'tests')), int(attr_val(ts, 'errors')), int(attr_val(ts, 'failures')), int(attr_val(ts, 'skip')), testcases)
-  except IOError:
+  except:
     return None
 
 def attr_val(node, attr_name):
