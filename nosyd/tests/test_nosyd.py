@@ -42,7 +42,7 @@ class TestNosyd:
     assert len(r.testcases) == 8
 
   def test_FileSet_build_re_pattern(self):
-    re_pattern = nosyd.FileSet(".", "ignored").build_pattern("src/main/java/**/com/*.java")
+    re_pattern = nosyd.FileSet(".", "ignored")._to_re_build_pattern("src/main/java/**/com/*.java")
     assert re_pattern == "src/main/java/.*/com/[^/]*.java$"
 
 

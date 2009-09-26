@@ -27,7 +27,7 @@ class FileSet:
     self.pattern = pattern
 
   # ugly trick to convert ** into .* and * into [^/]*...
-  def build_pattern(self, arg):
+  def _to_re_build_pattern(self, arg):
     tmp = arg.split("*")
     re_pattern = ""
     for i in range(len(tmp)):
@@ -41,17 +41,17 @@ class FileSet:
           re_pattern = re_pattern + "[^/]*"
     return re_pattern + "$"
 
-  def to_os_unspecific_path(self, os_specific_path):
+  def _to_os_unspecific_path(self, os_specific_path):
     return os_specific_path.replace(os.sep, "/")
 
   def find_paths(self):
     tmp = os.path.join(self.dir, self.pattern)
-    re_pattern = self.build_pattern(tmp)
+    re_pattern = self._to_re_build_pattern(tmp)
     paths = []
     for root, dirs, files in os.walk(self.dir):
       for f in files:
         full_path = os.path.join(root, f)
-        os_unspecific_path = self.to_os_unspecific_path(full_path)
+        os_unspecific_path = self._to_os_unspecific_path(full_path)
         if (re.match(re_pattern, full_path)):
           paths.append(full_path)
 
