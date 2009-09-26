@@ -8,6 +8,10 @@ import pynotify
 import logging
 import re
 
+#######################################################################################
+# Nosyd is a all in one file as I don't know yet how to properly package a python app #
+#######################################################################################
+
 class NosydException(Exception):
   def __init__(self, value):
     self.value = value
@@ -54,10 +58,6 @@ class FileSet:
 #    print "PATHS : " + self.pattern + ": " + str(paths)
     return paths
 
-
-############################################################################
-# inline the imports until I find out how to properly package a python app #
-############################################################################
 class XunitTestSuite:
   def __init__(self, name, tests, errors, failures, skip, testcases):
     self.name = name
@@ -118,15 +118,14 @@ def parse_surefire_results(filename):
 def attr_val(node, attr_name):
   return node.attributes[attr_name].value
 
-#from xunit import *
 ############################################################################
 
-
 logger = logging.getLogger("nosyd")
-LEVELS = {'debug': logging.DEBUG,
-          'info': logging.INFO,
-          'warning': logging.WARNING,
-          'error': logging.ERROR,
+
+LEVELS = {'debug':    logging.DEBUG,
+          'info':     logging.INFO,
+          'warning':  logging.WARNING,
+          'error':    logging.ERROR,
           'critical': logging.CRITICAL}
 
 '''
@@ -139,10 +138,10 @@ class Nosyd:
   def __init__(self):
     from user import home
     self.nosyd_dir = os.path.join(str(home), ".nosyd")
-    self.createDirStructure()
-    self.importConfig(os.path.join(self.nosyd_dir, "config"))
+    self._create_nosyd_dir_structure()
+    self._import_config(os.path.join(self.nosyd_dir, "config"))
 
-  def importConfig(self, configFile):
+  def _import_config(self, configFile):
     import ConfigParser
     cp = ConfigParser.SafeConfigParser()
     cp.add_section('nosyd')
@@ -160,6 +159,7 @@ class Nosyd:
     self.check_period = cp.getint('nosyd', 'check_period')
     self.config = cp
 
+  ###################### nosyd command line 'functions' ######################
   def list(self):
     paths = self.resolved_project_paths()
     print "nosyd monitors " + str(len(paths)) + " project(s)"
@@ -187,9 +187,9 @@ class Nosyd:
     if (not paths or len(paths) == 0):
       paths = [ "." ]
     for path in paths:
-      self.add_one(path)
+      self._add_one(path)
 
-  def add_one(self, path):
+  def _add_one(self, path):
     path = os.path.abspath(path)
     paths = self.resolved_project_paths()
     if (path in paths):
@@ -208,9 +208,9 @@ class Nosyd:
     if (not paths or len(paths) == 0):
       paths = [ "." ]
     for path in paths:
-      self.remove_one(path)
+      self._remove_one(path)
 
-  def remove_one(self, path=None):
+  def _remove_one(self, path=None):
     if (not path):
       path = "."
     path = os.path.abspath(path)
@@ -227,53 +227,34 @@ class Nosyd:
     else:
       print "Path " + path + " not monitored. So not removed"
 
-  def jobs_dir(self):
-    return os.path.join(self.nosyd_dir, "jobs")
-
-  def resolve_link(self, path):
-    return os.path.realpath(path)
-
-  def project_dir(self, project_name):
-    return os.path.join(self.jobs_dir(), project_name)
-
-  def resolved_project_dir(self, project_name):
-    return self.resolve_link(self.project_dir(project_name))
-
-  def createDirectoryIfNecessary(self, pathname, description):
+  def _create_directory_if_necessary(self, pathname, description):
     if (os.path.exists(pathname)):
       if (not os.path.isdir(pathname)):
-        raise NosydException("The " + description + "  (path " + pathname + ") exists but isn't a directory. Aborting")
+        raise NosydException("The " + description + " s(path " + pathname + ") exists but isn't a directory. Aborting")
     else:
       os.mkdir(pathname)
 
-  def createDirStructure(self):
-    self.createDirectoryIfNecessary(self.nosyd_dir, "nosyd directory")      
-    self.createDirectoryIfNecessary(self.jobs_dir(), "nosyd jobs directory")
-    
+  def _create_nosyd_dir_structure(self):
+    self._create_directory_if_necessary(self.nosyd_dir, "nosyd directory")
+    self._create_directory_if_necessary(self.jobs_dir(), "nosyd jobs directory")
+
+  ###################### nosyd 'daemon' ######################
   def run(self):
+    'Run the nosyd daemon'
     while (True):
-      p = self.getNextProjectToBuild()
+      p = self._get_next_project_to_build()
       logger.info("Building " + p.project_dir)
       p.buildAndNotify()
 
-  def getNextProjectToBuild(self):
+  def _get_next_project_to_build(self):
     while (True):
-      self.importConfig(os.path.join(self.nosyd_dir, "config"))
-      p = self.updateProjectsChecksums()
+      self._import_config(os.path.join(self.nosyd_dir, "config"))
+      p = self._update_projects_checksums()
       if (p):
         return p
       time.sleep(self.check_period)
 
-  def is_project_link(self, path):
-    return os.path.islink(self.project_dir(path))
-
-  def project_names(self):
-    return filter(self.is_project_link, os.listdir(self.jobs_dir()))
-
-  def resolved_project_paths(self):
-    return map(self.resolved_project_dir, self.project_names())
-
-  def updateProjectsChecksums(self):
+  def _update_projects_checksums(self):
     project_names = self.project_names()
     logger.debug(str(len(project_names)) + " project(s) monitored")
     logger.debug(project_names)
@@ -302,6 +283,29 @@ class Nosyd:
         logger.info("Project " + monitored_pn + " isn't monitored anymore. Removing from build queue.")
         del self.projects[monitored_pn]
     return None
+
+  ######################## HELPER METHODS ########################
+  def jobs_dir(self):
+    return os.path.join(self.nosyd_dir, "jobs")
+
+  def resolve_link(self, path):
+    return os.path.realpath(path)
+
+  def project_dir(self, project_name):
+    return os.path.join(self.jobs_dir(), project_name)
+
+  def resolved_project_dir(self, project_name):
+    return self.resolve_link(self.project_dir(project_name))
+
+  def project_names(self):
+    return filter(self.is_project_link, os.listdir(self.jobs_dir()))
+
+  def resolved_project_paths(self):
+    return map(self.resolved_project_dir, self.project_names())
+
+  def is_project_link(self, path):
+    return os.path.islink(self.project_dir(path))
+
     
 '''
 Watch for changes in all monitored files. If changes, run the builder.build() method.
@@ -322,9 +326,9 @@ class NosyProject:
     self.oldRes = 0
     self.firstBuild = True
     self.keepOnNotifyingFailures = True
-    self.importConfig(os.path.join(self.project_dir, ".nosy"))
+    self._import_config(os.path.join(self.project_dir, ".nosy"))
 
-  def importConfig(self, configFile):
+  def _import_config(self, configFile):
     # config specific properties
     import ConfigParser
     cp = ConfigParser.SafeConfigParser()
@@ -405,7 +409,7 @@ class NosyProject:
     self.notify(msg1, msg2, pynotify.URGENCY_NORMAL)
 
   def build(self):
-    self.importConfig(os.path.join(self.project_dir, ".nosy"))
+    self._import_config(os.path.join(self.project_dir, ".nosy"))
     os.chdir(self.project_dir)
     res, test_results = self.builder.build()
 #    print "res:" + str(res)
@@ -433,9 +437,12 @@ class NosyProject:
         res = self.buildAndNotify()
       time.sleep(self.checkPeriod)
 
+
 class Builder:
-  '''A builder has one method, build() that returns [res, test_results]. Res is 0 if the build passed and test_results contains a XunitTestSuite instance or None'''
+  '''A builder has one method, build() that returns [res, test_results]. Res is 0 if the build passed and test_results contains a XunitTestSuite instance or None
+     A builder also has a  get_default_monitored_paths method that returns a space separated list of FileSet patterns'''
   pass
+
 
 class TrialBuilder:
   def get_default_monitored_paths(self):
@@ -473,7 +480,7 @@ class Maven2Builder(Builder):
 
 from optparse import OptionParser
 
-class MyOptionParser(OptionParser):
+class NosydOptionParser(OptionParser):
   def print_help(self, file=None):
     OptionParser.print_help(self, file)
     if file is None:
@@ -485,7 +492,7 @@ class MyOptionParser(OptionParser):
 if __name__ == '__main__':
   import sys
 
-  parser = MyOptionParser(version='%prog 0.0.2')
+  parser = NosydOptionParser(version='%prog 0.0.2')
   parser.add_option("-a", "--add", default=None, action="store_true",
                   help="Start monitoring the specified or current directory")
   parser.add_option("-r", "--remove", action="store_true",
