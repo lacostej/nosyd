@@ -3,9 +3,11 @@ Nosyd is a _minimalist_ personal command line friendly CI server, initialy geare
 Nosyd is a daemonization of Jeff Wrinkler's original nosy script [1].
 
 Features:
-* automatically run nosetest whenever one of the monitored files of the monitored projects has changed
+* automatically run your build whenever one of the monitored files of the monitored projects has changed
+* support multiple builders (nosetests, maven2, trial)
 * notify using Gnome's notification library
 * per project configuration to override defaults
+* command line interface to add/remove jobs
 * persists daemon configuration using files and links
 * logging
 
@@ -14,8 +16,7 @@ Usage:
 * optionaly create a .nosy file in your project's directory. If that file changes, the file will be reloaded at next build.
 * add/remove the monitored project by using --add/--remove [path] options
 ** you can also do it manually by linking into the .nosyd/jobs/ directory
-  cd ~/.nosyd/jobs/
-  ln -s /path/to/your/project .
+  ln -s /path/to/your/project ~/.nosyd/jobs/
 
 Links:
 [1] http://jeffwinkler.net/2006/04/27/keeping-your-nose-green/
