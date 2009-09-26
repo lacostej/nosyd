@@ -118,8 +118,10 @@ class Nosyd:
     else:
       if (not os.path.exists(path)):
         print "Path " + path + " doesn't exist. Aborting"
+        return
       if (not os.path.isdir(path)):
         print "Path " + path + " not a directory. Aborting"
+        return
       print "Monitoring path " + path
       os.symlink(path, self.project_dir(os.path.basename(path)))
 
