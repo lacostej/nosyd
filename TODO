@@ -1,2 +1,7 @@
+* load Project config at checksum
+* only load configs if they have changed
+* rename checksum into should_build() ?
+* make the config a python file ! ?
 * make sure notification are not displayed that long
 * implement some sort of --restart ?? http://www.zetadev.com/software/lib537/1.0a1/doc/html/module-restarter.html
+  another idea: by touching a file, flush the projects property
