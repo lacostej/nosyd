@@ -37,17 +37,21 @@ class FileSet:
           re_pattern = re_pattern + "[^/]*"
     return re_pattern + "$"
 
+  def to_os_unspecific_path(self, os_specific_path):
+    return os_specific_path.replace(os.sep, "/")
+
   def find_paths(self):
-    tmp = (self.dir + "/" + self.pattern)
+    tmp = os.path.join(self.dir, self.pattern)
     re_pattern = self.build_pattern(tmp)
     paths = []
     for root, dirs, files in os.walk(self.dir):
       for f in files:
-        full_path = root + "/" + f
+        full_path = os.path.join(root, f)
+        os_unspecific_path = self.to_os_unspecific_path(full_path)
         if (re.match(re_pattern, full_path)):
           paths.append(full_path)
 
-    print "PATHS : " + self.pattern + ": " + str(paths)
+#    print "PATHS : " + self.pattern + ": " + str(paths)
     return paths
 
 
@@ -134,7 +138,7 @@ class Nosyd:
   def __init__(self):
     self.check_period = 1
     from user import home
-    self.nosyd_dir = str(home) + "/.nosyd"
+    self.nosyd_dir = os.path.join(str(home), ".nosyd")
     self.createDirStructure()
     logging.basicConfig(level=logging.INFO)
 
@@ -206,13 +210,13 @@ class Nosyd:
       print "Path " + path + " not monitored. So not removed"
 
   def jobs_dir(self):
-    return self.nosyd_dir + "/jobs"
+    return os.path.join(self.nosyd_dir, "jobs")
 
   def resolve_link(self, path):
     return os.path.realpath(path)
 
   def project_dir(self, project_name):
-    return self.jobs_dir() + "/" + project_name
+    return os.path.join(self.jobs_dir(), project_name)
 
   def resolved_project_dir(self, project_name):
     return self.resolve_link(self.project_dir(project_name))
@@ -296,7 +300,7 @@ class NosyProject:
     self.oldRes = 0
     self.firstBuild = True
     self.keepOnNotifyingFailures = True
-    self.importConfig(self.project_dir + "/.nosy")
+    self.importConfig(os.path.join(self.project_dir, ".nosy"))
 
   def importConfig(self, configFile):
     # config specific properties
@@ -376,7 +380,7 @@ class NosyProject:
     self.notify(msg1, msg2, pynotify.URGENCY_NORMAL)
 
   def build(self):
-    self.importConfig(self.project_dir + "/.nosy")
+    self.importConfig(os.path.join(self.project_dir, ".nosy"))
     os.chdir(self.project_dir)
     res, test_results = self.builder.build()
 #    print "res:" + str(res)
