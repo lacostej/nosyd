@@ -104,9 +104,13 @@ class Nosyd:
     np = NosyProject()
     np.run()
 
-  def add(self, path=None):
-    if (not path):
-      path = "."
+  def add(self, paths=[]):
+    if (not paths or len(paths) == 0):
+      paths = [ "." ]
+    for path in paths:
+      self.add_one(path)
+
+  def add_one(self, path):
     path = os.path.abspath(path)
     paths = self.resolved_project_paths()
     if (path in paths):
@@ -119,7 +123,13 @@ class Nosyd:
       print "Monitoring path " + path
       os.symlink(path, self.project_dir(os.path.basename(path)))
 
-  def remove(self, path=None):
+  def remove(self, paths=[]):
+    if (not paths or len(paths) == 0):
+      paths = [ "." ]
+    for path in paths:
+      self.remove_one(path)
+
+  def remove_one(self, path=None):
     if (not path):
       path = "."
     path = os.path.abspath(path)
@@ -322,51 +332,54 @@ class NosyProject:
         res = self.buildAndNotify()
       time.sleep(self.checkPeriod)
 
-def usage():
-  print "Usage:"
-  print "  " + os.path.basename(sys.argv[0]) + " [OPTION] - minimal personal CI server"
-  print ""
-  print "Help options:"
-  print "  -?, --help\t\t\tShow help options"
-  print ""
-  print "Application options:"
-  print "  --local [path]\t\tRun nosy (standalone) on the current directory"
-  print "  --add   [path]\t\tMonitor the specified or current directory"
-  print "  --remove      \t\t\tUn-monitor the specified or current directory"
-  print "  --list        \t\tList the project monitored"
-  print ""
-  print "Default behavior:"
-  print "            \t\t\tStart nosyd"
-  print ""
-  print "Report bugs to <jerome.lacoste@gmail.com>"
+from optparse import OptionParser
+
+class MyOptionParser(OptionParser):
+  def print_help(self, file=None):
+    OptionParser.print_help(self, file)
+    if file is None:
+      file = sys.stdout
+    file.write("\nDefault behavior:\n")
+    file.write("\t\tStart nosyd\n")
+    file.write("\nComments & bugs to <jerome.lacoste@gmail.com>\n")
 
 if __name__ == '__main__':
   import sys
-  command = None
-  if len(sys.argv) > 1 and sys.argv[1]:
-    command = sys.argv[1]
-  if (command == "--local"):
-    nosyd = Nosyd()
-    nosyd.local()
-  elif (command == "--list"):
-    nosyd = Nosyd()
+
+  parser = MyOptionParser(version='%prog 0.0.2')
+  parser.add_option("-a", "--add", default=None, action="store_true",
+                  help="Start monitoring the specified or current directory")
+  parser.add_option("-r", "--remove", action="store_true",
+                  help="Stop monitoring the specified or current directory")
+  parser.add_option("-l", "--list", dest="list", action="store_true", default=False,
+                  help="List the monitored projects")
+  parser.add_option("-1", "--local", dest="local", action="store_true", default=False,
+                  help="Run the standalone nosyd on the specified or current directory")
+
+  (options, args) = parser.parse_args()
+
+  nb_opts = 0
+  if (options.add):
+    nb_opts += 1
+  if (options.remove):
+    nb_opts += 1
+  if (options.list):
+    nb_opts += 1
+  if (options.local):
+    nb_opts += 1
+  if (nb_opts > 1):
+    parser.error("options --add, --remove, -list and --local are mutually exclusive")
+
+  nosyd = Nosyd()
+  if (options.add):
+    nosyd.add(args)
+  elif (options.remove):
+    nosyd.remove(args)
+  elif (options.list):
     nosyd.list()
-  elif (command == "--add"):
-    nosyd = Nosyd()
-    d = None
-    if len(sys.argv) > 2 and sys.argv[2]:
-      d = sys.argv[2]
-    nosyd.add(d)
-  elif (command == "--remove"):
-    nosyd = Nosyd()
-    d = None
-    if len(sys.argv) > 2 and sys.argv[2]:
-      d = sys.argv[2]
-    nosyd.remove(d)
-  elif (command == "--help" or command == "-?" or command != None):
-    usage()
+  elif (options.local):
+    nosyd.local()
   else:
-    nosyd = Nosyd()
     try:
       nosyd.run()
     except KeyboardInterrupt:
