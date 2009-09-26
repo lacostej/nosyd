@@ -6,6 +6,7 @@
 import glob,os,stat,time,os.path
 import pynotify
 import logging
+import re
 
 class NosydException(Exception):
   def __init__(self, value):
@@ -21,9 +22,33 @@ class FileSet:
     self.dir = dir
     self.pattern = pattern
 
+  # ugly trick to convert ** into .* and * into [^/]*...
+  def build_pattern(self, arg):
+    tmp = arg.split("*")
+    re_pattern = ""
+    for i in range(len(tmp)):
+      re_pattern += tmp[i]
+      if (tmp[i] == ""):
+        continue
+      if (i < len(tmp) - 1):
+        if (tmp[i + 1] == ""):
+          re_pattern = re_pattern + ".*"
+        else:
+          re_pattern = re_pattern + "[^/]*"
+    return re_pattern + "$"
+
   def find_paths(self):
-    # FIXME implement recursivity
-    return glob.glob(self.dir + "/" + self.pattern)
+    tmp = (self.dir + "/" + self.pattern)
+    re_pattern = self.build_pattern(tmp)
+    paths = []
+    for root, dirs, files in os.walk(self.dir):
+      for f in files:
+        full_path = root + "/" + f
+        if (re.match(re_pattern, full_path)):
+          paths.append(full_path)
+
+    print "PATHS : " + self.pattern + ": " + str(paths)
+    return paths
 
 
 ############################################################################
@@ -273,20 +298,12 @@ class NosyProject:
     self.keepOnNotifyingFailures = True
     self.importConfig(self.project_dir + "/.nosy")
 
-    if (self.type == "trial"):
-      self.builder = TrialBuilder()
-    elif (self.type == "maven2"):
-      self.builder = Maven2Builder()
-    else:
-      self.builder = NoseBuilder()
-
   def importConfig(self, configFile):
     # config specific properties
     import ConfigParser
     cp = ConfigParser.SafeConfigParser()
     cp.add_section('nosy')
     cp.set('nosy', 'type', 'nose')
-    cp.set('nosy', 'monitor_paths', '*.py') # FIXME default is project type specific
     cp.set('nosy', 'logging', 'warning')
     cp.set('nosy', 'check_period', '1')
 
@@ -295,8 +312,18 @@ class NosyProject:
 
     self.type = cp.get('nosy', 'type')
 
+    if (self.type == "trial"):
+      self.builder = TrialBuilder()
+    elif (self.type == "maven2"):
+      self.builder = Maven2Builder()
+    else:
+      self.builder = NoseBuilder()
+
     level = LEVELS.get(cp.get('nosy', 'logging'), logging.NOTSET)
     logging.basicConfig(level=level)
+
+    if (not cp.has_option('nosy', 'monitor_paths')):
+      cp.set('nosy', 'monitor_paths', self.builder.get_default_monitored_paths())
 
     p = cp.get('nosy', 'monitor_paths')
     logger.info("Monitoring paths: " + p)
@@ -382,20 +409,29 @@ class Builder:
   pass
 
 class TrialBuilder:
+  def get_default_monitored_paths(self):
+    return "**/*.py"
+
   def build(self):
     return os.system ('trial'), None
 
 class NoseBuilder(Builder):
+  def get_default_monitored_paths(self):
+    return "**/*.py"
+
   def build(self):
     res = os.system ('nosetests --with-xunit')
     test_results = parse_xunit_results('nosetests.xml')
     return res, test_results
 
 class Maven2Builder(Builder):
+  def get_default_monitored_paths(self):
+    return "src/main/java/**/*.java src/test/java/**/*.java"
+
   def build(self):
     res = os.system ('mvn test')
     test_results = None
-    surefire_results = FileSet('target/surefire-reports', '/TEST-*.xml').find_paths()
+    surefire_results = FileSet('target/surefire-reports', 'TEST-*.xml').find_paths()
     for result in surefire_results:
       r = parse_surefire_results(result)
       if (r == None):
