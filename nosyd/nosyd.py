@@ -26,6 +26,9 @@ class XunitTestSuite:
     self.skip = skip
     self.testcases = testcases
 
+  def __add__(self, o):
+    return XunitTestSuite("combined", self.tests + o.tests, self.errors + o.errors, self.failures + o.failures, self.skip + o.skip, self.testcases + o.testcases)
+
   def __str__(self):
     return "XunitTestSuite: %s %s %s %s %s" % (self.name , self.tests, self.errors, self.failures, self.skip)
 
@@ -50,7 +53,7 @@ class Failure:
     self.type = type
     self.text = text
 
-def parse_xunit_results(filename):
+def parse_xunit_results(filename, skip_attr_name='skip'):
   try :
     from xml.dom import minidom
     xmldoc = minidom.parse(filename)
@@ -63,9 +66,13 @@ def parse_xunit_results(filename):
         failureNode = tc.childNodes[0]
         failure = Failure(attr_val(failureNode, 'type'), failureNode.childNodes[0].data)
       testcases.append(TestCase(attr_val(tc, 'classname'), attr_val(tc, 'name'), failure))
-    return XunitTestSuite(attr_val(ts, 'name'), int(attr_val(ts, 'tests')), int(attr_val(ts, 'errors')), int(attr_val(ts, 'failures')), int(attr_val(ts, 'skip')), testcases)
-  except:
+    return XunitTestSuite(attr_val(ts, 'name'), int(attr_val(ts, 'tests')), int(attr_val(ts, 'errors')), int(attr_val(ts, 'failures')), int(attr_val(ts, skip_attr_name)), testcases)
+  except Exception, e:
+    logger.debug("Couldn't parse file " + filename + ": " + str(type(e)) + " " + str(e))
     return None
+
+def parse_surefire_results(filename):
+  return parse_xunit_results(filename, 'skipped')
 
 def attr_val(node, attr_name):
   return node.attributes[attr_name].value
@@ -237,7 +244,7 @@ class Nosyd:
     return None
     
 '''
-Watch for changes in all monitored files. If changes, run nosetests.
+Watch for changes in all monitored files. If changes, run the builder.build() method.
  '''
 class NosyProject:
 
@@ -253,8 +260,11 @@ class NosyProject:
     self.firstBuild = True
     self.keepOnNotifyingFailures = True
     self.importConfig(self.project_dir + "/.nosy")
+
     if (self.type == "trial"):
       self.builder = TrialBuilder()
+    elif (self.type == "maven2"):
+      self.builder = Maven2Builder()
     else:
       self.builder = NoseBuilder()
 
@@ -264,12 +274,14 @@ class NosyProject:
     cp = ConfigParser.SafeConfigParser()
     cp.add_section('nosy')
     cp.set('nosy', 'type', 'nose')
-    cp.set('nosy', 'monitor_paths', '*.py')
+    cp.set('nosy', 'monitor_paths', '*.py') # FIXME default is project type specific
     cp.set('nosy', 'logging', 'warning')
     cp.set('nosy', 'check_period', '1')
 
     if (os.access(configFile, os.F_OK)):
       cp.read(configFile)
+
+    self.type = cp.get('nosy', 'type')
 
     level = LEVELS.get(cp.get('nosy', 'logging'), logging.NOTSET)
     logging.basicConfig(level=level)
@@ -281,7 +293,6 @@ class NosyProject:
       self.paths += glob.glob(self.project_dir + "/" + path)
 
     self.checkPeriod = cp.getint('nosy', 'check_period')
-    self.type = cp.get('nosy', 'type')
 
   def checkSum(self):
     ''' Return a long which can be used to know if any files from the paths variable have changed.'''
@@ -366,6 +377,21 @@ class NoseBuilder(Builder):
   def build(self):
     res = os.system ('nosetests --with-xunit')
     test_results = parse_xunit_results('nosetests.xml')
+    return res, test_results
+
+class Maven2Builder(Builder):
+  def build(self):
+    res = os.system ('mvn test')
+    test_results = None
+    surefire_results = glob.glob('target/surefire-reports/TEST-*.xml')
+    for result in surefire_results:
+      r = parse_surefire_results(result)
+      if (r == None):
+        continue
+      if (test_results == None):
+        test_results = r
+      else:
+        test_results = test_results + r
     return res, test_results
 
 from optparse import OptionParser
