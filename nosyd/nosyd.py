@@ -3,7 +3,7 @@
 # By Jerome Lacoste, jerome@coffeebreaks.org
 # MIT license
 
-import glob,os,stat,time,os.path
+import os,stat,time,os.path
 import pynotify
 import logging
 import re
@@ -22,26 +22,30 @@ class NosydException(Exception):
 
 '''
 An a-la ant FileSet class that allows to identify groups of files that matches patterns. Supports recursivity
+** means match all
+* means match all except os.sep
 '''
 class FileSet:
   def __init__(self, dir, pattern):
     self.dir = dir
     self.pattern = pattern
 
-  # ugly trick to convert ** into .* and * into [^/]*...
   def _to_re_build_pattern(self, arg):
-    tmp = arg.split("*")
-    re_pattern = ""
-    for i in range(len(tmp)):
-      re_pattern += tmp[i]
-      if (tmp[i] == ""):
-        continue
-      if (i < len(tmp) - 1):
-        if (tmp[i + 1] == ""):
-          re_pattern = re_pattern + ".*"
+    '''Ugly function to convert ** into .* and * into [^/]* and use the result as input to a python RE'''
+    re_pattern = []
+    i = 0
+    while i < len(arg):
+      if (arg[i] == "*"):
+        i = i + 1
+        if (i < len(arg) - 1 and arg[i] == "*"):
+          i = i + 1
+          re_pattern.append(".*")
         else:
-          re_pattern = re_pattern + "[^/]*"
-    return re_pattern + "$"
+          re_pattern.append("[^/]*")
+      re_pattern.append(arg[i])
+      i = i + 1
+    re_pattern.append("$")
+    return ''.join(re_pattern)
 
   def _to_os_unspecific_path(self, os_specific_path):
     return os_specific_path.replace(os.sep, "/")
