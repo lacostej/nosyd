@@ -4,10 +4,11 @@ Nosyd is a daemonization of Jeff Wrinkler's original nosy script [1].
 
 Features:
 * automatically run your build whenever one of the monitored files of the monitored projects has changed
+* filesets to select files monitored
 * support multiple builders (nosetests, maven2, trial)
 * notify using Gnome's notification library
 * per project configuration to override defaults
-* command line interface to add/remove jobs
+* command line interface to add/remove/list jobs
 * persists daemon configuration using files and links
 * logging
 

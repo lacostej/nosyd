@@ -1,4 +1,5 @@
 * load Project config at checksum
+* auto detect project type (e.g. pom.xml -> maven2, build.xml -> ant, build.sh -> sh)
 * only load configs if they have changed
 * rename checksum into should_build() ?
 * make the config a python file ! ?

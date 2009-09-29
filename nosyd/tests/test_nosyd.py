@@ -43,6 +43,7 @@ class TestNosyd:
 
   def test_FileSet_build_re_pattern(self):
     re_pattern = nosyd.FileSet(".", "ignored")._to_re_build_pattern("src/main/java/**/com/*.java")
+    print re_pattern
     assert re_pattern == "src/main/java/.*/com/[^/]*.java$"
 
 
