@@ -20,7 +20,10 @@ has a command line interface, supports multiple builders, uses configuration fil
     url=djl_url,
     download_url="%(djl_url)s/tarball/%(version)s" % locals(),
     packages=find_packages(),
-    install_requires=['nose'],
+#    install_requires=,
+    extras_require= {
+       'nose': ["nose"]
+    },
     entry_points={'console_scripts':['nosyd = nosyd.nosyd:main']}
     )
 
