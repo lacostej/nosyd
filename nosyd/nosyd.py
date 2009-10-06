@@ -282,8 +282,11 @@ class NosyProject:
     if len(paths) == 0:
       logging.warning("No monitored paths for project_dir " + self.project_dir)
     for f in paths:
-      stats = os.stat (f)
-      val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
+      try:
+        stats = os.stat (f)
+        val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
+      except OSError:
+        continue
     self.logger.debug("checksum " + str(val))
     return val
 
