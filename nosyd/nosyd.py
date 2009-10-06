@@ -11,7 +11,7 @@ import re
 from xunit import *
 from utils import *
 
-version="0.0.3"
+version="0.0.4"
 
 #######################################################################################
 # Nosyd is a all in one file as I don't know yet how to properly package a python app #
