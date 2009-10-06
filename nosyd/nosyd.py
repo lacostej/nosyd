@@ -276,7 +276,7 @@ class NosyProject:
     val = 0
 
     paths = []
-    for pattern in p.split():
+    for pattern in self.monitor_paths.split():
       paths += FileSet(self.project_dir, pattern).find_paths()
 
     if len(paths) == 0:
