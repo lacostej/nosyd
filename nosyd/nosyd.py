@@ -4,7 +4,6 @@
 # MIT license
 
 import os,stat,time,os.path
-import pynotify
 import logging
 import re
 
@@ -218,6 +217,7 @@ class Nosyd:
 Watch for changes in all monitored files. If changes, run the builder.build() method.
  '''
 class NosyProject:
+  URGENCY_LOW, URGENCY_NORMAL, URGENCY_CRITICAL = range(3)
 
   def __init__(self, project_dir = None, project_name = None):
     self.project_dir = project_dir
@@ -290,21 +290,13 @@ class NosyProject:
     self.logger.debug("checksum " + str(val))
     return val
 
-  def notify(self,msg1,msg2,urgency=pynotify.URGENCY_LOW):
-    if not pynotify.init("Markup"):
-      return
-    n = pynotify.Notification(msg1, msg2)
-    n.set_urgency(urgency)
-    if not n.show():
-      print "Failed to send notification"
-
   def notifyFailure(self, r):
     if (r):
       msg1, msg2 = os.path.basename(self.project_dir) + " build failed.", self.project_dir + ": " + str(r.failures) + " tests failed and " + str(r.errors) + " errors: "
       msg2 += ", ".join(r.list_failure_names())
     else:
       msg1, msg2 = os.path.basename(self.project_dir) + " build failed.", self.project_dir + ": build failed."
-    self.notify(msg1, msg2, pynotify.URGENCY_CRITICAL)
+    self.notify(msg1, msg2, URGENCY_CRITICAL)
 
   def notifySuccess(self, r):
     if (r):
@@ -318,7 +310,29 @@ class NosyProject:
       msg1, msg2 = os.path.basename(self.project_dir) + " build fixed.", self.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
     else:
       msg1, msg2 = os.path.basename(self.project_dir) + " build Fixed.", self.project_dir + ": build fixed."
-    self.notify(msg1, msg2, pynotify.URGENCY_NORMAL)
+    self.notify(msg1, msg2, URGENCY_NORMAL)
+
+  def notify(self,msg1,msg2,urgency=URGENCY_LOW):
+    '''This attemps to use python-notify, a Linux only notification, or fall back to standard output'''
+    try:
+      self.pynotify(msg1, msg2, urgency)
+    except:
+      print msg1 + " " + msg2
+
+  def pynotify(self, msg1, msg2, urgency):
+    import pynotify
+    pyurgencies = {
+      URGENCY_LOW : pynotify.URGENCY_LOW,
+      URGENCY_NORMAL : pynotify.URGENCY_NORMAL,
+      URGENCY_CRITICAL : pynotify.URGENCY_CRITICAL,
+    }
+    pyurgency = pyurgencies[urgency]
+    if not pynotify.init("Markup"):
+      return
+    n = pynotify.Notification(msg1, msg2)
+    n.set_urgency(pyurgency)
+    if not n.show():
+      print "Failed to send notification"
 
   def build(self):
     self._import_config()
