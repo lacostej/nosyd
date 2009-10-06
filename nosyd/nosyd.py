@@ -266,11 +266,8 @@ class NosyProject:
     if (not cp.has_option('nosy', 'monitor_paths')):
       cp.set('nosy', 'monitor_paths', self.builder.get_default_monitored_paths())
 
-    p = cp.get('nosy', 'monitor_paths')
-    self.logger.debug("Monitoring paths: " + p)
-    self.paths = []
-    for pattern in p.split():
-      self.paths += FileSet(self.project_dir, pattern).find_paths()
+    self.monitor_paths = cp.get('nosy', 'monitor_paths')
+    self.logger.debug("Monitoring paths: " + self.monitor_paths)
 
     self.checkPeriod = cp.getint('nosy', 'check_period')
 
@@ -278,9 +275,13 @@ class NosyProject:
     ''' Return a long which can be used to know if any files from the paths variable have changed.'''
     val = 0
 
-    if len(self.paths) == 0:
+    paths = []
+    for pattern in p.split():
+      paths += FileSet(self.project_dir, pattern).find_paths()
+
+    if len(paths) == 0:
       logging.warning("No monitored paths for project_dir " + self.project_dir)
-    for f in self.paths:
+    for f in paths:
       stats = os.stat (f)
       val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
     self.logger.debug("checksum " + str(val))
