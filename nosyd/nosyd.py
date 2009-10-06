@@ -8,6 +8,9 @@ import pynotify
 import logging
 import re
 
+from xunit import *
+from utils import *
+
 version="0.0.3"
 
 #######################################################################################
@@ -20,109 +23,6 @@ class NosydException(Exception):
   def __str__(self):
     return repr(self.value)
 
-'''
-An a-la ant FileSet class that allows to identify groups of files that matches patterns. Supports recursivity
-** means match all
-* means match all except os.sep
-'''
-class FileSet:
-  def __init__(self, dir, pattern):
-    self.dir = dir
-    self.pattern = pattern
-
-  def _to_re_build_pattern(self, arg):
-    '''Ugly function to convert ** into .* and * into [^/]* and use the result as input to a python RE'''
-    re_pattern = []
-    i = 0
-    while i < len(arg):
-      if (arg[i] == "*"):
-        i = i + 1
-        if (i < len(arg) - 1 and arg[i] == "*"):
-          i = i + 1
-          re_pattern.append(".*")
-        else:
-          re_pattern.append("[^/]*")
-      re_pattern.append(arg[i])
-      i = i + 1
-    re_pattern.append("$")
-    return ''.join(re_pattern)
-
-  def _to_os_unspecific_path(self, os_specific_path):
-    return os_specific_path.replace(os.sep, "/")
-
-  def find_paths(self):
-    tmp = os.path.join(self.dir, self.pattern)
-    re_pattern = self._to_re_build_pattern(tmp)
-    paths = []
-    for root, dirs, files in os.walk(self.dir):
-      for f in files:
-        full_path = os.path.join(root, f)
-        os_unspecific_path = self._to_os_unspecific_path(full_path)
-        if (re.match(re_pattern, full_path)):
-          paths.append(full_path)
-
-#    print "PATHS : " + self.pattern + ": " + str(paths)
-    return paths
-
-class XunitTestSuite:
-  def __init__(self, name, tests, errors, failures, skip, testcases):
-    self.name = name
-    self.tests = tests
-    self.errors = errors
-    self.failures = failures
-    self.skip = skip
-    self.testcases = testcases
-
-  def __add__(self, o):
-    return XunitTestSuite("combined", self.tests + o.tests, self.errors + o.errors, self.failures + o.failures, self.skip + o.skip, self.testcases + o.testcases)
-
-  def __str__(self):
-    return "XunitTestSuite: %s %s %s %s %s" % (self.name , self.tests, self.errors, self.failures, self.skip)
-
-  def failed_testcase(self, tc):
-    return tc.failed()
-
-  def list_failure_names(self):
-    failed_testcases = filter(self.failed_testcase, self.testcases)
-    return [ el.name for el in failed_testcases ]
-
-class TestCase:
-  def __init__(self, classname, name, failure):
-    self.classname = classname
-    self.name = name
-    self.failure = failure
-
-  def failed(self):
-    return self.failure != None
-
-class Failure:
-  def __init__(self, type, text):
-    self.type = type
-    self.text = text
-
-def parse_xunit_results(filename, skip_attr_name='skip'):
-  try :
-    from xml.dom import minidom
-    xmldoc = minidom.parse(filename)
-    ts = xmldoc.firstChild
-    tcs = ts.getElementsByTagName('testcase')
-    testcases = []
-    for tc in tcs:
-      failure = None
-      if (len(tc.childNodes) > 0):
-        failureNode = tc.childNodes[0]
-        failure = Failure(attr_val(failureNode, 'type'), failureNode.childNodes[0].data)
-      testcases.append(TestCase(attr_val(tc, 'classname'), attr_val(tc, 'name'), failure))
-    return XunitTestSuite(attr_val(ts, 'name'), int(attr_val(ts, 'tests')), int(attr_val(ts, 'errors')), int(attr_val(ts, 'failures')), int(attr_val(ts, skip_attr_name)), testcases)
-  except Exception, e:
-    logger.debug("Couldn't parse file " + filename + ": " + str(type(e)) + " " + str(e))
-    return None
-
-def parse_surefire_results(filename):
-  return parse_xunit_results(filename, 'skipped')
-
-def attr_val(node, attr_name):
-  return node.attributes[attr_name].value
 
 ############################################################################
 
