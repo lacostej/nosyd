@@ -296,7 +296,7 @@ class NosyProject:
       msg2 += ", ".join(r.list_failure_names())
     else:
       msg1, msg2 = os.path.basename(self.project_dir) + " build failed.", self.project_dir + ": build failed."
-    self.notify(msg1, msg2, URGENCY_CRITICAL)
+    self.notify(msg1, msg2, self.URGENCY_CRITICAL)
 
   def notifySuccess(self, r):
     if (r):
@@ -310,7 +310,7 @@ class NosyProject:
       msg1, msg2 = os.path.basename(self.project_dir) + " build fixed.", self.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
     else:
       msg1, msg2 = os.path.basename(self.project_dir) + " build Fixed.", self.project_dir + ": build fixed."
-    self.notify(msg1, msg2, URGENCY_NORMAL)
+    self.notify(msg1, msg2, self.URGENCY_NORMAL)
 
   def notify(self,msg1,msg2,urgency=URGENCY_LOW):
     '''This attemps to use python-notify, a Linux only notification, or fall back to standard output'''
@@ -322,9 +322,9 @@ class NosyProject:
   def pynotify(self, msg1, msg2, urgency):
     import pynotify
     pyurgencies = {
-      URGENCY_LOW : pynotify.URGENCY_LOW,
-      URGENCY_NORMAL : pynotify.URGENCY_NORMAL,
-      URGENCY_CRITICAL : pynotify.URGENCY_CRITICAL,
+      self.URGENCY_LOW : pynotify.URGENCY_LOW,
+      self.URGENCY_NORMAL : pynotify.URGENCY_NORMAL,
+      self.URGENCY_CRITICAL : pynotify.URGENCY_CRITICAL,
     }
     pyurgency = pyurgencies[urgency]
     if not pynotify.init("Markup"):
