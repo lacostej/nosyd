@@ -146,7 +146,7 @@ class Nosyd:
 
   ###################### nosyd 'daemon' ######################
   def run(self):
-    'Run the nosyd daemon'
+    'Run the nosyd daemon until the stop_file is created.'
     stop_file = self.stop_file()
     if os.path.exists(stop_file):
       os.unlink(stop_file)
