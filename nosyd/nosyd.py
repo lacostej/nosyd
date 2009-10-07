@@ -293,7 +293,7 @@ class NosyProject:
     ''' Return a long which can be used to know if any files from the paths variable have changed.'''
     val = 0
 
-    paths = FileSet(self.project_dir, self.monitor_paths.split()).find_paths()
+    paths = self.getMonitoredPaths()
 
     if len(paths) == 0:
       logging.warning("No monitored paths for project_dir " + self.project_dir)
@@ -305,6 +305,11 @@ class NosyProject:
         continue
     self.logger.debug("checksum " + str(val))
     return val
+
+  # FIXME we should clear the cache when the monitor_paths value has changed (config reloaded...)
+  @MWT(timeout = 30)
+  def getMonitoredPaths(self):
+    return FileSet(self.project_dir, self.monitor_paths.split()).find_paths()
 
   def notifyFailure(self, r):
     if (r):
