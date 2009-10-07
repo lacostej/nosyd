@@ -152,19 +152,21 @@ class Nosyd:
       os.unlink(stop_file)
 
     while (True):
-      p = self._get_next_project_to_build()
+      p = self._get_next_project_to_build(stop_file)
+      if (p == None):
+        break
       logger.info("Building " + p.project_dir)
       p.buildAndNotify()
-      if os.path.exists(stop_file):
-        logger.info("Stop file found. Exiting.")
-        break
 
-  def _get_next_project_to_build(self):
+  def _get_next_project_to_build(self, stop_file):
     while (True):
       self._import_config()
       p = self._update_projects_checksums()
       if (p):
         return p
+      if os.path.exists(stop_file):
+        logger.info("Stop file found. Exiting.")
+        return None
       time.sleep(self.check_period)
 
   def _update_projects_checksums(self):
