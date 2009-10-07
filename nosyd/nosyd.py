@@ -275,9 +275,7 @@ class NosyProject:
     ''' Return a long which can be used to know if any files from the paths variable have changed.'''
     val = 0
 
-    paths = []
-    for pattern in self.monitor_paths.split():
-      paths += FileSet(self.project_dir, pattern).find_paths()
+    paths = FileSet(self.project_dir, self.monitor_paths.split()).find_paths()
 
     if len(paths) == 0:
       logging.warning("No monitored paths for project_dir " + self.project_dir)

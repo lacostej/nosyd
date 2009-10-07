@@ -16,9 +16,13 @@ An a-la ant FileSet class that allows to identify groups of files that matches p
 * means match all except os.sep
 '''
 class FileSet:
-  def __init__(self, dir, pattern):
+  def __init__(self, dir, patterns):
+    '''The patterns argument can be a List of a single pattern.'''
     self.dir = dir
-    self.pattern = pattern
+    if (type(patterns) == list):
+      self.patterns = patterns
+    else:
+      self.patterns = [ patterns ]
 
   def _to_re_build_pattern(self, arg):
     '''Ugly function to convert ** into .* and * into [^/]* and use the result as input to a python RE'''
@@ -41,15 +45,15 @@ class FileSet:
     return os_specific_path.replace(os.sep, "/")
 
   def find_paths(self):
-    tmp = os.path.join(self.dir, self.pattern)
-    re_pattern = self._to_re_build_pattern(tmp)
+    re_patterns = [ self._to_re_build_pattern(os.path.join(self.dir, p)) for p in self.patterns ]
     paths = []
     for root, dirs, files in os.walk(self.dir):
       for f in files:
         full_path = os.path.join(root, f)
         os_unspecific_path = self._to_os_unspecific_path(full_path)
-        if (re.match(re_pattern, full_path)):
-          paths.append(full_path)
+        for re_pattern in re_patterns:
+          if (re.match(re_pattern, full_path)):
+            paths.append(full_path)
 
 #    print "PATHS : " + self.pattern + ": " + str(paths)
     return paths
