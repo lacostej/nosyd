@@ -6,6 +6,7 @@
 import os,stat,time,os.path
 import logging
 import re
+import sys
 
 from xunit import *
 from utils import *
@@ -480,6 +481,5 @@ def main():
       logger.info("Aborting...")
 
 if __name__ == '__main__':
-  import sys
   main()
 
