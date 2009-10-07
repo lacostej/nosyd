@@ -159,6 +159,7 @@ class Nosyd:
       p.buildAndNotify()
 
   def _get_next_project_to_build(self, stop_file):
+    '''Returns when one of the monitored project has changed, or when the stop_file was created. Returns the next project to build or None if stopping'''
     while (True):
       self._import_config()
       p = self._update_projects_checksums()
