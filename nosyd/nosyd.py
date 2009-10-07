@@ -163,11 +163,11 @@ class Nosyd:
     while (True):
       self._import_config()
       p = self._update_projects_checksums()
-      if (p):
-        return p
       if os.path.exists(stop_file):
         logger.info("Stop file found. Exiting.")
         return None
+      if (p):
+        return p
       time.sleep(self.check_period)
 
   def _update_projects_checksums(self):
