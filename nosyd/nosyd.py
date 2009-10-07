@@ -81,6 +81,9 @@ class Nosyd:
       return "\t[MISSING]"
     return ""
 
+  def stop(self):
+    self._touch(self.stop_file())
+
   def local(self):
     np = NosyProject()
     np.run()
@@ -143,10 +146,17 @@ class Nosyd:
   ###################### nosyd 'daemon' ######################
   def run(self):
     'Run the nosyd daemon'
+    stop_file = self.stop_file()
+    if os.path.exists(stop_file):
+      os.unlink(stop_file)
+
     while (True):
       p = self._get_next_project_to_build()
       logger.info("Building " + p.project_dir)
       p.buildAndNotify()
+      if os.path.exists(stop_file):
+        logger.info("Stop file found. Exiting.")
+        break
 
   def _get_next_project_to_build(self):
     while (True):
@@ -190,6 +200,9 @@ class Nosyd:
   def jobs_dir(self):
     return os.path.join(self.nosyd_dir, "jobs")
 
+  def stop_file(self):
+    return os.path.join(self.nosyd_dir, "stop")
+
   def resolve_link(self, path):
     return os.path.realpath(path)
 
@@ -207,6 +220,11 @@ class Nosyd:
 
   def is_project_link(self, path):
     return os.path.islink(self.project_dir(path))
+
+  def _touch(self, path):
+    '''Util command. Creates a file if it doesn't exist'''
+    if not os.path.exists(path):
+      open(path, 'w').close()
 
     
 '''
@@ -421,6 +439,8 @@ def main():
                   help="Clean the projects nosyd can't track anymore (links point to nowhere)")
   parser.add_option("-1", "--local", dest="local", action="store_true", default=False,
                   help="Run the standalone nosyd on the specified or current directory")
+  parser.add_option("-s", "--stop", dest="stop", action="store_true", default=False,
+                  help="Stops the running server, if any")
 
   (options, args) = parser.parse_args()
 
@@ -435,8 +455,10 @@ def main():
     nb_opts += 1
   if (options.clean):
     nb_opts += 1
+  if (options.stop):
+    nb_opts += 1
   if (nb_opts > 1):
-    parser.error("options --add, --clean, --remove, -list and --local are mutually exclusive")
+    parser.error("options --add, --clean, --remove, --list, --local and --stop are mutually exclusive")
 
   nosyd = Nosyd()
   if (options.add):
@@ -449,6 +471,8 @@ def main():
     nosyd.list()
   elif (options.local):
     nosyd.local()
+  elif (options.stop):
+    nosyd.stop()
   else:
     try:
       nosyd.run()
