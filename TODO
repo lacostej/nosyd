@@ -1,3 +1,5 @@
+* cross platform tray with persistent status (green or red if at least one project fails)
+  http://code.activestate.com/recipes/475155/ ??
 * load Project config at checksum
 * auto detect project type (e.g. pom.xml -> maven2, build.xml -> ant, build.sh -> sh)
 * only load configs if they have changed
