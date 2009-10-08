@@ -10,6 +10,7 @@ class MWT(object):
     def __init__(self, timeout=2, cache_attr_name = None):
         self.timeout = timeout
         self.cache_attr_name = cache_attr_name
+        self.cache = None
 
     def collect(self):
         """Clear cache of results which have timed out"""
@@ -21,24 +22,28 @@ class MWT(object):
             self._caches[func].clear()
             self._caches[func].update(cache)
 
+    def init_cache(self, f, args, kwargs):
+        # idea sort of from http://pypi.python.org/pypi/gocept.cache but merged back into MWT
+        if (self.cache_attr_name == None):
+          self.cache = self._caches[f] = {}
+        else:
+          try:
+            the_self = args[0]
+            self.cache = getattr(the_self, self.cache_attr_name)
+            self._caches[f] = self.cache
+          except (IndexError, AttributeError):
+            raise TypeError(
+                "MWT could not retrieve cache attribute '%s' for function %r"
+                % (self.cache_attr_name, f.func_name))
+
+
     def __call__(self, f):
         self._timeouts[f] = self.timeout
 
         def func(*args, **kwargs):
 
-            # idea sort of from http://pypi.python.org/pypi/gocept.cache but merged back into MWT
-            if (self.cache_attr_name == None):
-              self.cache = self._caches[f] = {}
-            else:
-              try:
-                the_self = args[0]
-                self.cache = getattr(the_self, self.cache_attr_name)
-                self._caches[f] = self.cache
-              except (IndexError, AttributeError):
-                raise TypeError(
-                    "MWT could not retrieve cache attribute '%s' for function %r"
-                    % (self.cache_attr_name, f.func_name))
-
+            if self.cache == None:
+              self.init_cache(f, args, kwargs)
 
             kw = kwargs.items()
             kw.sort()
