@@ -1,4 +1,5 @@
 from nosyd.nosyd import *
+from nosyd.cache import *
 
 class CountCalls:
   def __init__(self):

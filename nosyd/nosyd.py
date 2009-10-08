@@ -10,6 +10,7 @@ import sys
 
 from xunit import *
 from utils import *
+import cache
 
 version="0.0.4"
 
@@ -310,7 +311,7 @@ class NosyProject:
     self.logger.debug("checksum " + str(val))
     return val
 
-  @MWT(timeout = 30, cache_attr_name = "my_cache")
+  @cache.MWT(timeout = 30, cache_attr_name = "my_cache")
   def getMonitoredPaths(self):
     return FileSet(self.project_dir, self.monitor_paths.split()).find_paths()
 
