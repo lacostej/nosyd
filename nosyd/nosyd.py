@@ -235,6 +235,7 @@ class Nosyd:
 Watch for changes in all monitored files. If changes, run the builder.build() method.
  '''
 class NosyProject:
+
   URGENCY_LOW, URGENCY_NORMAL, URGENCY_CRITICAL = range(3)
 
   def __init__(self, project_dir = None, project_name = None):
@@ -251,6 +252,7 @@ class NosyProject:
     self.oldRes = 0
     self.firstBuild = True
     self.keepOnNotifyingFailures = True
+    self.my_cache = {}
     self._import_config()
 
   def _import_config(self):
@@ -284,6 +286,8 @@ class NosyProject:
     if (not cp.has_option('nosy', 'monitor_paths')):
       cp.set('nosy', 'monitor_paths', self.builder.get_default_monitored_paths())
 
+    self.my_cache.clear()
+
     self.monitor_paths = cp.get('nosy', 'monitor_paths')
     self.logger.debug("Monitoring paths: " + self.monitor_paths)
 
@@ -306,8 +310,7 @@ class NosyProject:
     self.logger.debug("checksum " + str(val))
     return val
 
-  # FIXME we should clear the cache when the monitor_paths value has changed (config reloaded...)
-  @MWT(timeout = 30)
+  @MWT(timeout = 30, cache_attr_name = "my_cache")
   def getMonitoredPaths(self):
     return FileSet(self.project_dir, self.monitor_paths.split()).find_paths()
 
