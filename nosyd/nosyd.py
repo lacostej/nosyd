@@ -286,6 +286,8 @@ class NosyProject:
     self.logger = logging.getLogger('nosy-' + self.project_name)
     self.logger.setLevel(level)
 
+    self.builder.logger = self.logger
+
     if (not cp.has_option('nosy', 'monitor_paths')):
       cp.set('nosy', 'monitor_paths', self.builder.get_default_monitored_paths())
 
@@ -394,22 +396,35 @@ class NosyProject:
 class Builder:
   '''A builder has one method, build() that returns [res, test_results]. Res is 0 if the build passed and test_results contains a XunitTestSuite instance or None
      A builder also has a  get_default_monitored_paths method that returns a space separated list of FileSet patterns'''
-  pass
+  def __init__(self):
+    self.logger = None
 
+  def run(self, command):
+    import subprocess
+    try:
+      retcode = subprocess.call(command, shell=True)
+      if retcode < 0:
+        logger.error("Child was terminated by signal " + str(-retcode))
+      else:
+        logger.debug("Child returned " + str(retcode))
+      return retcode
+    except OSError, e:
+      logger.error("Execution failed:" + str(e))
+      raise
 
 class TrialBuilder:
   def get_default_monitored_paths(self):
     return "*.py **/*.py"
 
   def build(self):
-    return os.system ('trial'), None
+    return self.run('trial'), None
 
 class NoseBuilder(Builder):
   def get_default_monitored_paths(self):
     return "*.py **/*.py"
 
   def build(self):
-    res = os.system ('nosetests --with-xunit')
+    res = self.run('nosetests --with-xunit')
     test_results = parse_xunit_results('nosetests.xml')
     return res, test_results
 
@@ -418,7 +433,7 @@ class DjangoBuilder(Builder):
     return "**.py"
 
   def build(self):
-    res = os.system ('python ./manage.py test')
+    res = self.run('python ./manage.py test')
 #    test_results = parse_xunit_results('nosetests.xml')
     return res, None
 
@@ -427,7 +442,7 @@ class Maven2Builder(Builder):
     return "src/main/java/**/*.java src/test/java/**/*.java"
 
   def build(self):
-    res = os.system ('mvn test')
+    res = self.run('mvn test')
     test_results = None
     surefire_results = FileSet('target/surefire-reports', 'TEST-*.xml').find_paths()
     for result in surefire_results:
@@ -440,6 +455,8 @@ class Maven2Builder(Builder):
         test_results = test_results + r
     return res, test_results
 
+
+######################## CLI ########################
 from optparse import OptionParser
 
 class NosydOptionParser(OptionParser):
