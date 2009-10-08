@@ -275,6 +275,8 @@ class NosyProject:
       self.builder = TrialBuilder()
     elif (self.type == "maven2"):
       self.builder = Maven2Builder()
+    elif (self.type == "django"):
+      self.builder = DjangoBuilder()
     else:
       self.builder = NoseBuilder()
 
@@ -410,6 +412,15 @@ class NoseBuilder(Builder):
     res = os.system ('nosetests --with-xunit')
     test_results = parse_xunit_results('nosetests.xml')
     return res, test_results
+
+class DjangoBuilder(Builder):
+  def get_default_monitored_paths(self):
+    return "**.py"
+
+  def build(self):
+    res = os.system ('python ./manage.py test')
+#    test_results = parse_xunit_results('nosetests.xml')
+    return res, None
 
 class Maven2Builder(Builder):
   def get_default_monitored_paths(self):
