@@ -25,6 +25,8 @@ of the monitored files of the monitored projects has changed.
 #    install_requires='xxx',
     extras_require= {
        'nose': ["nose"]
+#      'Growl': 0.0.7
+#      pynotify: ???
     },
     entry_points={'console_scripts':['nosyd = nosyd.nosyd:main']},
     classifiers=[
