@@ -11,6 +11,7 @@ Changes
 - new CLI options (--stop)
 - be smarter at identifying the monitored project files
 - some performance improvements (cache some of the monitored files resolution to lower CPU usage)
+- auto-rebuild project when .nosy file is changed
 
 
 
