@@ -252,10 +252,10 @@ class NosyProject:
     self.firstBuild = True
     self.keepOnNotifyingFailures = True
     self.my_cache = {}
+    self.config_file = os.path.join(self.project_dir, ".nosy")
     self._import_config()
 
   def _import_config(self):
-    config_file = os.path.join(self.project_dir, ".nosy")
     # config specific properties
     import ConfigParser
     cp = ConfigParser.SafeConfigParser()
@@ -264,8 +264,8 @@ class NosyProject:
     cp.set('nosy', 'logging', 'warning')
     cp.set('nosy', 'check_period', '1')
 
-    if (os.access(config_file, os.F_OK)):
-      cp.read(config_file)
+    if (os.access(self.config_file, os.F_OK)):
+      cp.read(self.config_file)
 
     self.type = cp.get('nosy', 'type')
 
@@ -325,7 +325,9 @@ class NosyProject:
 
   @cache.MWT(timeout = 30, cache_attr_name = "my_cache")
   def getMonitoredPaths(self):
-    return FileSet(self.project_dir, self.monitor_paths.split()).find_paths()
+    a = FileSet(self.project_dir, self.monitor_paths.split()).find_paths()
+    a.append(self.config_file)
+    return a
 
   def build(self):
     self._import_config()
