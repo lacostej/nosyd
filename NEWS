@@ -12,10 +12,14 @@ Changes
 - be smarter at identifying the monitored project files
 - some performance improvements (cache some of the monitored files resolution to lower CPU usage)
 
+
+
 0.0.4 (2009-10-06)
 ==================
 
 - setuptools support. Project split into multiple files
+
+
 
 0.0.3 (2009-09-26)
 ==================
@@ -24,6 +28,8 @@ Changes
 - support FileSet for identifying monitored files
 - be more cross platform
 
+
+
 0.0.2 (2009-09-26)
 ==================
 
@@ -31,6 +37,8 @@ Changes
 - better CLI help
 - auto-reloaded config files
 - some bug fixes & small improvements
+
+
 
 0.0.1 (2009-09-25)
 ==================

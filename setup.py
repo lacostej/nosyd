@@ -1,7 +1,12 @@
+import os.path
 from setuptools import setup, find_packages
 
 djl_url = "http://github.com/lacostej/nosyd"
 version = "0.0.4"
+
+changes_file = os.path.join(os.path.dirname(__file__), 'NEWS')
+changes = file(changes_file).read().split('\n\n\n')
+latest_changes = '\n\n\n'.join(changes[:3])
 
 setup(
     name="Nosyd",
@@ -10,7 +15,7 @@ setup(
 A _minimalist_ personal command line friendly CI server. Automatically runs your build whenever one
 of the monitored files of the monitored projects has changed.
     """,
-    long_description=open('README').read(),
+    long_description=open('README').read() + '\n\n' + latest_changes,
     license="MIT",
     author="Jeff Winkler & Jerome Lacoste",
     author_email="jerome.lacoste@gmail.com",
