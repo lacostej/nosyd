@@ -20,7 +20,7 @@ has a command line interface, supports multiple builders, uses configuration fil
     url=djl_url,
     download_url="%(djl_url)s/tarball/%(version)s" % locals(),
     packages=find_packages(),
-#    install_requires=,
+#    install_requires='xxx',
     extras_require= {
        'nose': ["nose"]
     },
