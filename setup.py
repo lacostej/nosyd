@@ -10,11 +10,8 @@ setup(
 A _minimalist_ personal command line friendly CI server. Automatically runs your build whenever one
 of the monitored files of the monitored projects has changed.
     """,
-    long_description="""\
-A daemonization of Jeff Wrinkler's original nosy script that automatically
-runs your build whenever one of the monitored files of the monitored projects has changed. This version
-has a command line interface, supports multiple builders, uses configuration files and desktop notifications.
-""",
+    long_description=open('README').read(),
+    license="MIT",
     author="Jeff Winkler & Jerome Lacoste",
     author_email="jerome.lacoste@gmail.com",
     url=djl_url,
@@ -24,7 +21,19 @@ has a command line interface, supports multiple builders, uses configuration fil
     extras_require= {
        'nose': ["nose"]
     },
-    entry_points={'console_scripts':['nosyd = nosyd.nosyd:main']}
+    entry_points={'console_scripts':['nosyd = nosyd.nosyd:main']},
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Environment :: X11 Applications :: Gnome',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2.6',
+        'Topic :: Software Development :: Build Tools',
+        'Topic :: Software Development :: Testing',
+    ]
+
     )
 
 # end of file
