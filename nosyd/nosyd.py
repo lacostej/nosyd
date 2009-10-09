@@ -278,16 +278,6 @@ class NosyProject:
     else:
       self.builder = NoseBuilder()
 
-    # This attemps to use various notifiers, or fall back to standard output
-    pyNotifier = PyNotifier()
-    growlNotifier = GrowlNotifier()
-    if growlNotifier.is_supported():
-      self.notifier = growlNotifier
-    elif pyNotifier.is_supported():
-      self.notifier = pyNotifier
-    else:
-      self.notifier = SysOutNotifier()
-
     level = LEVELS.get(cp.get('nosy', 'logging'), logging.NOTSET)
     logging.basicConfig(level=level)
 
@@ -295,6 +285,16 @@ class NosyProject:
     self.logger.setLevel(level)
 
     self.builder.logger = self.logger
+
+    # This attemps to use various notifiers, or fall back to standard output
+    pyNotifier = PyNotifier(self.logger)
+    growlNotifier = GrowlNotifier(self.logger)
+    if growlNotifier.is_supported():
+      self.notifier = growlNotifier
+    elif pyNotifier.is_supported():
+      self.notifier = pyNotifier
+    else:
+      self.notifier = SysOutNotifier(self.logger)
 
     if (not cp.has_option('nosy', 'monitor_paths')):
       cp.set('nosy', 'monitor_paths', self.builder.get_default_monitored_paths())
@@ -360,6 +360,9 @@ class NosyProject:
 class Notifier:
   URGENCY_LOW, URGENCY_NORMAL, URGENCY_CRITICAL = range(3)
 
+  def __init__(self, logger = None):
+    self.logger = logger
+
   def notifyFailure(self, r, project):
     if (r):
       msg1, msg2 = os.path.basename(project.project_dir) + " build failed.", project.project_dir + ": " + str(r.failures) + " tests failed and " + str(r.errors) + " errors: "
@@ -420,8 +423,6 @@ class PyNotifier(Notifier):
 
 '''Simple notifier that just logs at info level'''
 class SysOutNotifier(Notifier):
-  def __init__(self, logger):
-    self.logger = logger
 
   def is_supported(self):
     return True
@@ -434,7 +435,8 @@ class SysOutNotifier(Notifier):
   @see http://growl.info/
 '''
 class GrowlNotifier(Notifier):
-  def __init__(self):
+  def __init__(self, logger=None):
+    Notifier.__init__(self, logger)
     self.growlNotifier = None
     self.icon = None
     self.notetype = "DEFAULT"
