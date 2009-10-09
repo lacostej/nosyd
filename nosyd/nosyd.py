@@ -278,9 +278,12 @@ class NosyProject:
     else:
       self.builder = NoseBuilder()
 
-    # This attemps to use python-notify, a Linux only notification, or fall back to standard output
+    # This attemps to use various notifiers, or fall back to standard output
     pyNotifier = PyNotifier()
-    if pyNotifier.is_supported():
+    growlNotifier = GrowlNotifier()
+    if growlNotifier.is_supported():
+      self.notifier = growlNotifier
+    elif pyNotifier.is_supported():
       self.notifier = pyNotifier
     else:
       self.notifier = SysOutNotifier()
@@ -399,6 +402,10 @@ class PyNotifier(Notifier):
       return False
 
   def notify(self, msg1, msg2, urgency=Notifier.URGENCY_LOW):
+
+    if not self.is_supported():
+      raise NosydException("PyNotifier unsupported")
+
     import pynotify
     pyurgencies = {
       self.URGENCY_LOW : pynotify.URGENCY_LOW,
@@ -421,6 +428,41 @@ class SysOutNotifier(Notifier):
 
   def notify(self, msg1, msg2, urgencyIgnored=Notifier.URGENCY_LOW):
     self.logger.info(msg1 + " " + msg2)
+
+
+'''Use Growl, a Mac OS X notification library that integrates with the desktop
+  @see http://growl.info/
+'''
+class GrowlNotifier(Notifier):
+  def __init__(self):
+    self.growlNotifier = None
+    self.icon = None
+    self.notetype = "DEFAULT"
+
+  def is_supported(self):
+    try:
+      import Growl
+      notifications = [ self.notetype ]
+      defaultNotifications = None
+      self.growlNotifier = GrowlNotifier("Nosyd", notifications, defaultNotifications)
+      self.growlNotifier.register()
+      return True
+    except:
+      return False
+
+  def notify(self, msg1, msg2, urgency=Notifier.URGENCY_LOW):
+    import Growl
+    if not self.is_supported():
+      raise NosydException("GrowlNotifier unsupported")
+
+    growlpriorities = {
+      self.URGENCY_LOW : -1,      # growlPriority "Moderate"
+      self.URGENCY_NORMAL : 0,    # growlPriority "Normal"
+      self.URGENCY_CRITICAL : 1,  # growlPriority "High"
+    }
+    sticky = False
+    priority = growlpriorities[urgency]
+    self.growlNotifier.notify(self.notetype, msg1, msg2, self.icon, sticky, priority)
 
 class Builder:
   '''A builder has one method, build() that returns [res, test_results]. Res is 0 if the build passed and test_results contains a XunitTestSuite instance or None
