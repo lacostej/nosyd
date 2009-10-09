@@ -411,6 +411,7 @@ class PyNotifier(Notifier):
     if not n.show():
       print "Failed to send notification"
 
+'''Simple notifier that just logs at info level'''
 class SysOutNotifier(Notifier):
   def __init__(self, logger):
     self.logger = logger
