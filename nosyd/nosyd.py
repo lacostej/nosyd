@@ -237,8 +237,6 @@ Watch for changes in all monitored files. If changes, run the builder.build() me
  '''
 class NosyProject:
 
-  URGENCY_LOW, URGENCY_NORMAL, URGENCY_CRITICAL = range(3)
-
   def __init__(self, project_dir = None, project_name = None):
     self.project_dir = project_dir
     self.project_name = project_name
@@ -280,6 +278,13 @@ class NosyProject:
     else:
       self.builder = NoseBuilder()
 
+    # This attemps to use python-notify, a Linux only notification, or fall back to standard output
+    pyNotifier = PyNotifier()
+    if pyNotifier.is_supported():
+      self.notifier = pyNotifier
+    else:
+      self.notifier = SysOutNotifier()
+
     level = LEVELS.get(cp.get('nosy', 'logging'), logging.NOTSET)
     logging.basicConfig(level=level)
 
@@ -319,50 +324,6 @@ class NosyProject:
   def getMonitoredPaths(self):
     return FileSet(self.project_dir, self.monitor_paths.split()).find_paths()
 
-  def notifyFailure(self, r):
-    if (r):
-      msg1, msg2 = os.path.basename(self.project_dir) + " build failed.", self.project_dir + ": " + str(r.failures) + " tests failed and " + str(r.errors) + " errors: "
-      msg2 += ", ".join(r.list_failure_names())
-    else:
-      msg1, msg2 = os.path.basename(self.project_dir) + " build failed.", self.project_dir + ": build failed."
-    self.notify(msg1, msg2, self.URGENCY_CRITICAL)
-
-  def notifySuccess(self, r):
-    if (r):
-      msg1, msg2 = os.path.basename(self.project_dir) + " build successfull.", self.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
-    else:
-      msg1, msg2 = os.path.basename(self.project_dir) + " build successful.", self.project_dir + ": build successful."
-    self.notify(msg1, msg2)
-
-  def notifyFixed(self, r):
-    if (r):
-      msg1, msg2 = os.path.basename(self.project_dir) + " build fixed.", self.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
-    else:
-      msg1, msg2 = os.path.basename(self.project_dir) + " build Fixed.", self.project_dir + ": build fixed."
-    self.notify(msg1, msg2, self.URGENCY_NORMAL)
-
-  def notify(self,msg1,msg2,urgency=URGENCY_LOW):
-    '''This attemps to use python-notify, a Linux only notification, or fall back to standard output'''
-    try:
-      self.pynotify(msg1, msg2, urgency)
-    except:
-      print msg1 + " " + msg2
-
-  def pynotify(self, msg1, msg2, urgency):
-    import pynotify
-    pyurgencies = {
-      self.URGENCY_LOW : pynotify.URGENCY_LOW,
-      self.URGENCY_NORMAL : pynotify.URGENCY_NORMAL,
-      self.URGENCY_CRITICAL : pynotify.URGENCY_CRITICAL,
-    }
-    pyurgency = pyurgencies[urgency]
-    if not pynotify.init("Markup"):
-      return
-    n = pynotify.Notification(msg1, msg2)
-    n.set_urgency(pyurgency)
-    if not n.show():
-      print "Failed to send notification"
-
   def build(self):
     self._import_config()
     os.chdir(self.project_dir)
@@ -374,12 +335,12 @@ class NosyProject:
     res, test_results = self.build()
     if (res != 0):
       if (self.oldRes == 0 or self.keepOnNotifyingFailures):
-        self.notifyFailure(test_results)
+        self.notifier.notifyFailure(test_results, self)
     else:
       if (self.firstBuild):
-        self.notifySuccess(test_results)
+        self.notifier.notifySuccess(test_results, self)
       elif (self.oldRes != 0):
-        self.notifyFixed(test_results)
+        self.notifier.notifyFixed(test_results, self)
     self.firstBuild = False
     self.oldRes = res
 
@@ -392,6 +353,73 @@ class NosyProject:
         res = self.buildAndNotify()
       time.sleep(self.checkPeriod)
 
+
+class Notifier:
+  URGENCY_LOW, URGENCY_NORMAL, URGENCY_CRITICAL = range(3)
+
+  def notifyFailure(self, r, project):
+    if (r):
+      msg1, msg2 = os.path.basename(project.project_dir) + " build failed.", project.project_dir + ": " + str(r.failures) + " tests failed and " + str(r.errors) + " errors: "
+      msg2 += ", ".join(r.list_failure_names())
+    else:
+      msg1, msg2 = os.path.basename(project.project_dir) + " build failed.", project.project_dir + ": build failed."
+    self.notify(msg1, msg2, Notifier.URGENCY_CRITICAL)
+
+  def notifySuccess(self, r, project):
+    if (r):
+      msg1, msg2 = os.path.basename(project.project_dir) + " build successfull.", project.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
+    else:
+      msg1, msg2 = os.path.basename(project.project_dir) + " build successful.", project.project_dir + ": build successful."
+    self.notify(msg1, msg2)
+
+  def notifyFixed(self, r, project):
+    if (r):
+      msg1, msg2 = os.path.basename(project.project_dir) + " build fixed.", project.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
+    else:
+      msg1, msg2 = os.path.basename(project.project_dir) + " build Fixed.", project.project_dir + ": build fixed."
+    self.notify(msg1, msg2, Notifier.URGENCY_NORMAL)
+
+  def is_supported(self):
+    '''To implement in subclass'''
+    return False
+
+  def notify(self, msg1, msg2, urgency=URGENCY_LOW):
+    '''To implement in subclass'''
+    pass
+
+'''Use pynotify, a Linux notification library that integrates with the desktop'''
+class PyNotifier(Notifier):
+  def is_supported(self):
+    try:
+      import pynotify
+      if not pynotify.init("Markup"):
+        return False
+      return True
+    except:
+      return False
+
+  def notify(self, msg1, msg2, urgency=Notifier.URGENCY_LOW):
+    import pynotify
+    pyurgencies = {
+      self.URGENCY_LOW : pynotify.URGENCY_LOW,
+      self.URGENCY_NORMAL : pynotify.URGENCY_NORMAL,
+      self.URGENCY_CRITICAL : pynotify.URGENCY_CRITICAL,
+    }
+    pyurgency = pyurgencies[urgency]
+    n = pynotify.Notification(msg1, msg2)
+    n.set_urgency(pyurgency)
+    if not n.show():
+      print "Failed to send notification"
+
+class SysOutNotifier(Notifier):
+  def __init__(self, logger):
+    self.logger = logger
+
+  def is_supported(self):
+    return True
+
+  def notify(self, msg1, msg2, urgencyIgnored=Notifier.URGENCY_LOW):
+    self.logger.info(msg1 + " " + msg2)
 
 class Builder:
   '''A builder has one method, build() that returns [res, test_results]. Res is 0 if the build passed and test_results contains a XunitTestSuite instance or None
