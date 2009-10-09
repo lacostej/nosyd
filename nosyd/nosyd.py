@@ -448,7 +448,7 @@ class GrowlNotifier(Notifier):
       import Growl
       notifications = [ self.notetype ]
       defaultNotifications = None
-      self.growlNotifier = GrowlNotifier("Nosyd", notifications, defaultNotifications)
+      self.growlNotifier = Growl.GrowlNotifier("Nosyd", notifications, defaultNotifications)
       self.growlNotifier.register()
       return True
     except:
