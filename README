@@ -1,0 +1,39 @@
+-----
+About
+-----
+
+Nosyd is a _minimalist_ personal command line friendly CI server. It is primarily meant to run on your developer desktop.
+Nosyd tracks multiple projects and automatically runs your build whenever one of the monitored files of the monitored projects has changed.
+
+Nosyd is a daemonization of Jeff Wrinkler's original nosy script [1]. This version has a command line interface,
+supports multiple builders, uses configuration files and desktop notifications.
+
+--------
+Features
+--------
+
+* automatically run your build whenever one of the monitored files of the monitored projects has changed
+* filesets to select files monitored
+* support multiple builders (nosetests, maven2, trial)
+* notify using Gnome's notification library
+* per project configuration to override defaults
+* command line interface to add/remove/list jobs
+* persists daemon configuration using files and links
+* logging
+
+-----
+Usage
+-----
+
+* install in path and run nosyd.py to start the daemon.
+* optionally create a ~/.nosyd/config to override some of the configuration
+* optionaly create a .nosy file in your project's directory. If that file changes, the file will be reloaded at next build.
+* add/remove the monitored project by using --add/--remove [path] options
+** you can also do it manually by adding/removing symlinks into the .nosyd/jobs/ directory
+  ln -s /path/to/your/project ~/.nosyd/jobs/
+
+Links
+=====
+
+[1] http://jeffwinkler.net/2006/04/27/keeping-your-nose-green/
+[2] http://douglatornell.ca/software/python/Nosy-1.0.tar.gz
