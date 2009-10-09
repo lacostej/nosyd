@@ -2,7 +2,7 @@ import os.path
 from setuptools import setup, find_packages
 
 djl_url = "http://github.com/lacostej/nosyd"
-version = "0.0.4"
+version = "0.0.5"
 
 changes_file = os.path.join(os.path.dirname(__file__), 'NEWS')
 changes = file(changes_file).read().split('\n\n\n')

@@ -12,7 +12,7 @@ from xunit import *
 from utils import *
 import cache
 
-version="0.0.4"
+version="0.0.5"
 
 class NosydException(Exception):
   def __init__(self, value):
