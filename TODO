@@ -1,5 +1,6 @@
 * cross platform tray with persistent status (green or red if at least one project fails)
   http://code.activestate.com/recipes/475155/ ??
+* what to do when a jobs with same name already exists
 * KNotify ? http://mvidner.blogspot.com/2008/06/knotify-client.html
 * better django support (make it per process)
   sys.path += ['WHATEVER_PATHS_YOU_NEED']
