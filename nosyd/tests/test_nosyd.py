@@ -1,5 +1,10 @@
 from nosyd.nosyd import *
 
+data_dir = os.path.join(os.path.dirname(__file__), 'data')
+
+def get_data_file(name):
+  return os.path.join(data_dir, name)
+
 class TestNosyd:
 
   def setUp(self):
@@ -9,7 +14,7 @@ class TestNosyd:
     self.n = None
 
   def test_parse_xunit_results(self):
-    r = parse_xunit_results("tests/data/nosetests_1.xml")
+    r = parse_xunit_results(get_data_file("nosetests_1.xml"))
     print r
     assert r.errors == 0
     assert r.failures == 1
@@ -21,11 +26,11 @@ class TestNosyd:
     assert r.list_failure_names()[0] == "tests.test_nosy.TestNosy.test_xxx"
 
   def test_parse_non_existing_file(self):
-    r = parse_xunit_results("tests/data/IDONTEXIST.xml")
+    r = parse_xunit_results(get_data_file("IDONTEXIST.xml"))
     assert r == None
 
   def test_parse_surefire_results(self):
-    r = parse_surefire_results("tests/data/surefire_report_1.xml")
+    r = parse_surefire_results(get_data_file("surefire_report_1.xml"))
     print r
     assert r.errors == 0
     assert r.failures == 0
@@ -33,8 +38,8 @@ class TestNosyd:
     assert len(r.testcases) == 7
 
   def test_add_results(self):
-    r1 = parse_xunit_results("tests/data/nosetests_1.xml")
-    r2 = parse_surefire_results("tests/data/surefire_report_1.xml")
+    r1 = parse_xunit_results(get_data_file("nosetests_1.xml"))
+    r2 = parse_surefire_results(get_data_file("surefire_report_1.xml"))
     r = r1 + r2
     assert r.errors == 0
     assert r.failures == 1
