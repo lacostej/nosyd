@@ -1,12 +1,22 @@
------
-About
------
+-------
+Summary
+-------
 
-Nosyd is a _minimalist_ personal command line friendly CI server. It is primarily meant to run on your developer desktop.
+Nosyd is a _minimalist_ personal command line friendly CI server. It is primarily meant to run on your developer machine.
 Nosyd tracks multiple projects and automatically runs your build whenever one of the monitored files of the monitored projects has changed.
 
-Nosyd is a daemonization of Jeff Wrinkler's original nosy script [1]. This version has a command line interface,
-supports multiple builders, uses configuration files and desktop notifications.
+------------
+How it works
+------------
+
+Nosyd is an auto-testing tool, also called personnal Continuous Integration server. It is a daemonization of Jeff Wrinkler's original nosy script [1].
+
+Nosyd sits in the background and can monitor multiple projects. This means you only need one instance of nosyd on your desktop.
+Today nosyd rebuilds projects if one of the files it monitors has changed. After it has built the project, nosyd tries to notify you
+of the build results using Desktop notifications. When it can, nosyd uses information from the build to report accurate information (number of failed tests, etc).
+Nosyd then goes back waiting for a project to be rebuilt.
+
+Nosyd version has a command line interface, configuration files, supports multiple builders and desktop notifiers notifiers.
 
 --------
 Features
@@ -14,8 +24,8 @@ Features
 
 * automatically run your build whenever one of the monitored files of the monitored projects has changed
 * filesets to select files monitored
-* support multiple builders (nosetests, maven2, trial)
-* notify using Gnome's notification library
+* support multiple builders (nosetests, maven2, trial, django)
+* notify using Gnome's notification library on Linux, Growl on Mac OS X
 * per project configuration to override defaults
 * command line interface to add/remove/list jobs
 * persists daemon configuration using files and links
@@ -25,15 +35,70 @@ Features
 Usage
 -----
 
-* install in path and run nosyd.py to start the daemon.
+* install in path and run nosyd in a terminal to start the daemon. The terminal should be kept open, you will see the build output there
 * optionally create a ~/.nosyd/config to override some of the configuration
 * optionaly create a .nosy file in your project's directory. If that file changes, the file will be reloaded at next build.
 * add/remove the monitored project by using --add/--remove [path] options
 ** you can also do it manually by adding/removing symlinks into the .nosyd/jobs/ directory
   ln -s /path/to/your/project ~/.nosyd/jobs/
 
+------
+Layout
+------
+
+~/.nosyd/config                optional main nosyd configuration
+~/.nosyd/stop                  temporary file created to indicate nosyd should stop
+~/.nosyd/jobs/a_link           link to a directory on your file system representing a monitored project
+
+/path/to/your/project/.nosy    optional project specific configuration for nosyd
+
+--------------
+Configurations
+--------------
+
+Default values for the various configuration files:
+
+~/.nosyd/config
+
+    [nosyd]
+    #logging=warning
+    #check_period=1
+
+/path/to/your/project/.nosy
+
+    [nosy]
+    #type=default
+    #monitor_paths   (project specific)
+    #logging=warning (for the project and associated builder and notifier)
+    #check_period    (when ran standalone, i.e. with --local)
+
+
+----
+Help
+----
+
+Usage: nosyd [options]
+
+Options:
+  --version     show program's version number and exit
+  -h, --help    show this help message and exit
+  -a, --add     Start monitoring the specified or current directory
+  -r, --remove  Stop monitoring the specified or current directory
+  -l, --list    List the monitored projects
+  -c, --clean   Clean the projects nosyd can't track anymore (links point to
+                nowhere)
+  -1, --local   Run the standalone nosyd on the specified or current directory
+  -s, --stop    Stops the running server, if any
+
+Default behavior:
+		Start nosyd
+
+Comments & bugs to <jerome.lacoste@gmail.com>
+
+
+-----
 Links
-=====
+-----
 
 [1] http://jeffwinkler.net/2006/04/27/keeping-your-nose-green/
 [2] http://douglatornell.ca/software/python/Nosy-1.0.tar.gz
