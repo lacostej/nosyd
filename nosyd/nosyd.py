@@ -273,6 +273,8 @@ class NosyProject:
       self.builder = TrialBuilder()
     elif (self.type == "maven2"):
       self.builder = Maven2Builder()
+    elif (self.type == "rake"):
+      self.builder = RakeBuilder()
     elif (self.type == "django"):
       self.builder = DjangoBuilder()
     else:
@@ -502,6 +504,16 @@ class NoseBuilder(Builder):
     res = self.run('nosetests --with-xunit')
     test_results = parse_xunit_results('nosetests.xml')
     return res, test_results
+
+class RakeBuilder(Builder):
+  def get_default_monitored_paths(self):
+    return "app/** config/** test/**"
+
+  def build(self):
+    res = self.run('rake test')
+#    test_results = parse_xunit_results('nosetests.xml')
+    return res, None
+
 
 class DjangoBuilder(Builder):
   def get_default_monitored_paths(self):
