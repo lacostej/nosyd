@@ -51,4 +51,9 @@ class TestNosyd:
     print re_pattern
     assert re_pattern == "src/main/java/.*/com/[^/]*.java$"
 
+  def test_FileSet_build_re_pattern_2(self):
+    re_pattern = FileSet(".", "ignored")._to_re_build_pattern("app/** config/** test/**")
+    print re_pattern
+    assert re_pattern == "app/.* config/.* test/.*$"
+
 

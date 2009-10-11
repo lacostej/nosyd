@@ -31,9 +31,11 @@ class FileSet:
     while i < len(arg):
       if (arg[i] == "*"):
         i = i + 1
-        if (i < len(arg) - 1 and arg[i] == "*"):
+        if (i <= len(arg) - 1 and arg[i] == "*"):
           i = i + 1
           re_pattern.append(".*")
+          if i == len(arg):
+            break
         else:
           re_pattern.append("[^/]*")
       re_pattern.append(arg[i])
