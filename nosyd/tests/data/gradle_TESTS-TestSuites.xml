@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites>
+  <testsuite errors="1" failures="0" hostname="expresso2" id="0" name="ExerciseTest" package="" tests="2" time="0.126" timestamp="2010-01-27T11:37:11">
+      <properties>
+          <property name="java.runtime.name" value="Java(TM) SE Runtime Environment" />
+
+          <property name="sun.boot.library.path" value="/usr/local/lib/jdk1.6.0_16/jre/lib/i386" />
+
+          <property name="java.vm.version" value="14.2-b01" />
+
+          <property name="ant.version" value="Apache Ant version 1.7.0 compiled on December 13 2006" />
+
+          <property name="ant.java.version" value="1.6" />
+
+          <property name="java.vm.vendor" value="Sun Microsystems Inc." />
+
+          <property name="java.vendor.url" value="http://java.sun.com/" />
+
+          <property name="path.separator" value=":" />
+
+          <property name="java.vm.name" value="Java HotSpot(TM) Server VM" />
+
+          <property name="file.encoding.pkg" value="sun.io" />
+
+          <property name="user.country" value="US" />
+
+          <property name="sun.java.launcher" value="SUN_STANDARD" />
+
+          <property name="sun.os.patch.level" value="unknown" />
+
+          <property name="java.vm.specification.name" value="Java Virtual Machine Specification" />
+
+          <property name="user.dir" value="/home/jerome/Code/Customers/JB/Maths/eureka/v2-groovy-dsl" />
+
+          <property name="java.runtime.version" value="1.6.0_16-b01" />
+
+          <property name="java.awt.graphicsenv" value="sun.awt.X11GraphicsEnvironment" />
+
+          <property name="basedir" value="/home/jerome/Code/Customers/JB/Maths/eureka/v2-groovy-dsl" />
+
+          <property name="java.endorsed.dirs" value="/usr/local/lib/jdk1.6.0_16/jre/lib/endorsed" />
+
+          <property name="os.arch" value="i386" />
+
+          <property name="java.io.tmpdir" value="/tmp" />
+
+          <property name="ant.core.lib" value="/usr/local/lib/gradle-0.8/lib/ant-1.7.0.jar" />
+
+          <property name="line.separator" value=" " />
+
+          <property name="java.vm.specification.vendor" value="Sun Microsystems Inc." />
+
+          <property name="os.name" value="Linux" />
+
+          <property name="tools.jar" value="/usr/local/lib/java/lib/tools.jar" />
+
+          <property name="sun.jnu.encoding" value="UTF-8" />
+
+          <property name="java.library.path" value="/usr/local/lib/jdk1.6.0_16/jre/lib/i386/server:/usr/local/lib/jdk1.6.0_16/jre/lib/i386:/usr/local/lib/jdk1.6.0_16/jre/../lib/i386:/usr/java/packages/lib/i386:/lib:/usr/lib" />
+
+          <property name="java.specification.name" value="Java Platform API Specification" />
+
+          <property name="java.class.version" value="50.0" />
+
+          <property name="sun.management.compiler" value="HotSpot Tiered Compilers" />
+
+          <property name="os.version" value="2.6.31-17-generic" />
+
+          <property name="user.home" value="/home/jerome" />
+
+          <property name="user.timezone" value="" />
+
+          <property name="java.awt.printerjob" value="sun.print.PSPrinterJob" />
+
+          <property name="java.specification.version" value="1.6" />
+
+          <property name="file.encoding" value="UTF-8" />
+
+          <property name="java.class.path" value="/home/jerome/Code/Customers/JB/Maths/eureka/v2-groovy-dsl/build/classes/test:/home/jerome/Code/Customers/JB/Maths/eureka/v2-groovy-dsl/build/classes/main:/home/jerome/.gradle/cache/org.codehaus.groovy/groovy/jars/groovy-1.7.0.jar:/home/jerome/.gradle/cache/antlr/antlr/jars/antlr-2.7.7.jar:/home/jerome/.gradle/cache/asm/asm/jars/asm-3.2.jar:/home/jerome/.gradle/cache/asm/asm-commons/jars/asm-commons-3.2.jar:/home/jerome/.gradle/cache/asm/asm-tree/jars/asm-tree-3.2.jar:/home/jerome/.gradle/cache/asm/asm-util/jars/asm-util-3.2.jar:/home/jerome/.gradle/cache/asm/asm-analysis/jars/asm-analysis-3.2.jar:/home/jerome/.gradle/cache/jline/jline/jars/jline-0.9.94.jar:/home/jerome/.gradle/cache/junit/junit/jars/junit-4.7.jar:/usr/local/lib/gradle-0.8/lib/ant-nodeps-1.7.0.jar:/usr/local/lib/gradle-0.8/lib/ant-trax-1.7.0.jar:/usr/local/lib/gradle-0.8/lib/ant-1.7.0.jar:/usr/local/lib/gradle-0.8/lib/ant-junit-1.7.0.jar:/usr/local/lib/gradle-0.8/lib/ant-launcher-1.7.0.jar" />
+
+          <property name="user.name" value="jerome" />
+
+          <property name="java.vm.specification.version" value="1.0" />
+
+          <property name="java.home" value="/usr/local/lib/jdk1.6.0_16/jre" />
+
+          <property name="sun.arch.data.model" value="32" />
+
+          <property name="java.specification.vendor" value="Sun Microsystems Inc." />
+
+          <property name="user.language" value="en" />
+
+          <property name="java.vm.info" value="mixed mode" />
+
+          <property name="java.version" value="1.6.0_16" />
+
+          <property name="java.ext.dirs" value="/usr/local/lib/jdk1.6.0_16/jre/lib/ext:/usr/java/packages/lib/ext" />
+
+          <property name="gradle.home" value="/usr/local/lib/gradle-0.8" />
+
+          <property name="sun.boot.class.path" value="/usr/local/lib/jdk1.6.0_16/jre/lib/resources.jar:/usr/local/lib/jdk1.6.0_16/jre/lib/rt.jar:/usr/local/lib/jdk1.6.0_16/jre/lib/sunrsasign.jar:/usr/local/lib/jdk1.6.0_16/jre/lib/jsse.jar:/usr/local/lib/jdk1.6.0_16/jre/lib/jce.jar:/usr/local/lib/jdk1.6.0_16/jre/lib/charsets.jar:/usr/local/lib/jdk1.6.0_16/jre/classes" />
+
+          <property name="java.vendor" value="Sun Microsystems Inc." />
+
+          <property name="file.separator" value="/" />
+
+          <property name="java.vendor.url.bug" value="http://java.sun.com/cgi-bin/bugreport.cgi" />
+
+          <property name="sun.cpu.endian" value="little" />
+
+          <property name="sun.io.unicode.encoding" value="UnicodeLittle" />
+
+          <property name="sun.desktop" value="gnome" />
+
+          <property name="sun.cpu.isalist" value="" />
+
+      </properties>
+
+      <testcase classname="ExerciseTest" name="testSthg" time="0.025">
+          <error message="assert 1 == 2          |          false" type="org.codehaus.groovy.transform.powerassert.PowerAssertionError">Assertion failed: 
+
+assert 1 == 2
+         |
+         false
+
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:378)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:662)
+	at ExerciseTest.testSthg(ExerciseTest.groovy:6)
+</error>
+
+      </testcase>
+
+      <testcase classname="ExerciseTest" name="testParseMultiple" time="0.0010" />
+
+      <system-out><![CDATA[]]></system-out>
+
+      <system-err><![CDATA[]]></system-err>
+
+  </testsuite>
+</testsuites>

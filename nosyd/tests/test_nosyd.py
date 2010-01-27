@@ -1,4 +1,5 @@
 from nosyd.nosyd import *
+from assert_utils import *
 
 data_dir = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -36,6 +37,20 @@ class TestNosyd:
     assert r.failures == 0
     assert r.skip == 0
     assert len(r.testcases) == 7
+
+  def test_parse_gradle_suite_results(self):
+    r = parse_gradle_suites_results(get_data_file("gradle_TESTS-TestSuites.xml"))
+    print r
+    assert r != None
+    assert r.errors == 1
+    assert r.failures == 0
+    assert len(r.testcases) == 2
+    assert r.testcases[0].failed() == True
+    assert r.testcases[0].failure.type == "org.codehaus.groovy.transform.powerassert.PowerAssertionError"
+
+    assert len(r.list_failure_names()) == 1
+    assertEquals( r.list_failure_names()[0], "testSthg")
+
 
   def test_add_results(self):
     r1 = parse_xunit_results(get_data_file("nosetests_1.xml"))

@@ -57,6 +57,6 @@ class FileSet:
           if (re.match(re_pattern, full_path)):
             paths.append(full_path)
 
-#    print "PATHS : " + self.pattern + ": " + str(paths)
+#    print "PATHS : " + ",".join(self.patterns) + ": " + str(paths)
     return paths
 

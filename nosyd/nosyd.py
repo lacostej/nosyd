@@ -12,7 +12,7 @@ from xunit import *
 from utils import *
 import cache
 
-version="0.0.5"
+version="0.0.6"
 
 class NosydException(Exception):
   def __init__(self, value):
@@ -148,6 +148,7 @@ class Nosyd:
   ###################### nosyd 'daemon' ######################
   def run(self):
     'Run the nosyd daemon until the stop_file is created.'
+    logging.info("Starting nosyd " + version)
     stop_file = self.stop_file()
     if os.path.exists(stop_file):
       os.unlink(stop_file)
@@ -189,8 +190,8 @@ class Nosyd:
         if (not os.path.exists(project_dir)):
           logger.debug("Project dir " + project_dir + " doesn't exist. Skipping")
           continue
-        logger.info("Project " + pn + " isn't yet monitored. Adding to build queue.")
         project = NosyProject(project_dir, pn)
+        logger.info("Project " + pn + " of type [" + project.type + "] isn't yet monitored. Adding to build queue.")
         project.val = project.checkSum()
         self.projects[pn] = project
         return project
@@ -273,10 +274,15 @@ class NosyProject:
       self.builder = TrialBuilder()
     elif (self.type == "maven2"):
       self.builder = Maven2Builder()
+    elif (self.type == "gradle"):
+      self.builder = GradleBuilder()
     elif (self.type == "rake"):
       self.builder = RakeBuilder()
     elif (self.type == "django"):
       self.builder = DjangoBuilder()
+    elif (self.type == "generic"):
+      command = cp.get('nosy', 'command')
+      self.builder = GenericBuilder(command)
     else:
       self.builder = NoseBuilder()
 
@@ -335,7 +341,7 @@ class NosyProject:
     self._import_config()
     os.chdir(self.project_dir)
     res, test_results = self.builder.build()
-    self.logger.debug("build res:" + str(res))
+    self.logger.debug("build res:" + str(res) + " " + ("None" if (test_results is None) else (str(len(test_results.testcases)) + " result(s)" )))
     return res, test_results
 
   def buildAndNotify(self):
@@ -496,6 +502,17 @@ class TrialBuilder:
   def build(self):
     return self.run('trial'), None
 
+class GenericBuilder:
+  def __init__(self, command):
+    self.command = command
+
+  def get_default_monitored_paths(self):
+    return "**"
+
+  def build(self):
+    # FIXME parse results
+    return self.run(command), None
+
 class NoseBuilder(Builder):
   def get_default_monitored_paths(self):
     return "*.py **/*.py"
@@ -514,6 +531,15 @@ class RakeBuilder(Builder):
 #    test_results = parse_xunit_results('nosetests.xml')
     return res, None
 
+class GradleBuilder(Builder):
+  def get_default_monitored_paths(self):
+    return "src/** test/**"
+
+  def build(self):
+    res = self.run('gradle test')
+#    test_results = parse_surefire_reports('build/test-results/', 'TEST-*.xml')
+    test_results = parse_gradle_suites_results('build/test-results/TESTS-TestSuites.xml')
+    return res, test_results
 
 class DjangoBuilder(Builder):
   def get_default_monitored_paths(self):
@@ -530,18 +556,24 @@ class Maven2Builder(Builder):
 
   def build(self):
     res = self.run('mvn test')
-    test_results = None
-    surefire_results = FileSet('target/surefire-reports', 'TEST-*.xml').find_paths()
-    for result in surefire_results:
-      r = parse_surefire_results(result)
-      if (r == None):
-        continue
-      if (test_results == None):
-        test_results = r
-      else:
-        test_results = test_results + r
+    test_results = parse_surefire_reports('target/surefire-reports', 'TEST-*.xml')
     return res, test_results
 
+
+######################## UTILS #######################
+def parse_surefire_reports(reports_dir, pattern):
+  surefire_results = FileSet(reports_dir, pattern).find_paths()
+#  print surefire_results
+  test_results = None
+  for result in surefire_results:
+    r = parse_surefire_results(result)
+    if (r == None):
+      continue
+    if (test_results == None):
+      test_results = r
+    else:
+      test_results = test_results + r
+  return test_results
 
 ######################## CLI ########################
 from optparse import OptionParser

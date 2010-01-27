@@ -42,23 +42,57 @@ def parse_xunit_results(filename, skip_attr_name='skip'):
   try :
     from xml.dom import minidom
     xmldoc = minidom.parse(filename)
-    ts = xmldoc.firstChild
-    tcs = ts.getElementsByTagName('testcase')
-    testcases = []
-    for tc in tcs:
-      failure = None
-      if (len(tc.childNodes) > 0):
-        failureNode = tc.childNodes[0]
-        failure = Failure(attr_val(failureNode, 'type'), failureNode.childNodes[0].data)
-      testcases.append(TestCase(attr_val(tc, 'classname'), attr_val(tc, 'name'), failure))
-    return XunitTestSuite(attr_val(ts, 'name'), int(attr_val(ts, 'tests')), int(attr_val(ts, 'errors')), int(attr_val(ts, 'failures')), int(attr_val(ts, skip_attr_name)), testcases)
+    return parse_xunit_tsuite(xmldoc.firstChild, skip_attr_name)
   except Exception, e:
-    logger.debug("Couldn't parse file " + filename + ": " + str(type(e)) + " " + str(e))
+    logger.error("Couldn't parse file " + filename + ": " + str(type(e)) + " " + str(e))
     return None
 
 def parse_surefire_results(filename):
   return parse_xunit_results(filename, 'skipped')
 
+def parse_gradle_suites_results(filename):
+  try :
+    from xml.dom import minidom
+    xmldoc = minidom.parse(filename)
+    tsuites = xmldoc.firstChild.getElementsByTagName('testsuite')
+    result = None
+    for ts in tsuites:
+      new = parse_xunit_tsuite(ts, None)
+      if result is None:
+        result = new
+      else:
+        result += new
+    return result
+  except Exception, e:
+    logger.error("Couldn't parse file " + filename + ": " + str(type(e)) + " " + str(e))
+    import traceback
+    logger.error(traceback.format_exc(e))
+    return None
+
+def parse_xunit_tsuite(ts, skip_attr_name='skip'):
+  tcs = ts.getElementsByTagName('testcase')
+  testcases = []
+  for tc in tcs:
+    failure = None
+    failureNode = None
+    failures = tc.getElementsByTagName('failure')
+    if len(failures) > 0:
+      failureNode = failures[0]
+    errors = tc.getElementsByTagName('error')
+    if len(errors) > 0:
+      failureNode = errors[0]
+    if failureNode != None:
+      failure = Failure(attr_val(failureNode, 'type'), failureNode.childNodes[0].data)
+    testcases.append(TestCase(attr_val(tc, 'classname'), attr_val(tc, 'name'), failure))
+  skipped = 0
+  if skip_attr_name != None:
+    skipped = int(attr_val(ts, skip_attr_name))
+  return XunitTestSuite(attr_val(ts, 'name'), int(attr_val(ts, 'tests')), int(attr_val(ts, 'errors')), int(attr_val(ts, 'failures')), skipped, testcases)
+
 def attr_val(node, attr_name):
+  if node is None:
+    raise Exception("None node");
+  if node.attributes is None:
+    raise Exception("None node.attributes "  + str(type(node)));
   return node.attributes[attr_name].value
 
