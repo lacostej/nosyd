@@ -518,7 +518,10 @@ class NoseBuilder(Builder):
     return "*.py **/*.py"
 
   def build(self):
-    res = self.run('nosetests --with-xunit')
+    v_env = ""
+    if os.path.exists("./bin/activate"):
+      v_env = ". ./bin/activate && "
+    res = self.run(v_env + 'nosetests --with-xunit')
     test_results = parse_xunit_results('nosetests.xml')
     return res, test_results
 
