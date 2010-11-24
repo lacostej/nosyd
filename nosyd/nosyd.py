@@ -483,9 +483,12 @@ class Builder:
     self.logger = None
 
   def run(self, command):
+    v_env = ""
+    if os.path.exists("./bin/activate"):
+      v_env = ". ./bin/activate && "
     import subprocess
     try:
-      retcode = subprocess.call(command, shell=True)
+      retcode = subprocess.call(v_env + command, shell=True)
       if retcode < 0:
         logger.error("Child was terminated by signal " + str(-retcode))
       else:
@@ -502,7 +505,7 @@ class TrialBuilder:
   def build(self):
     return self.run('trial'), None
 
-class GenericBuilder:
+class GenericBuilder(Builder):
   def __init__(self, command):
     self.command = command
 
@@ -511,17 +514,14 @@ class GenericBuilder:
 
   def build(self):
     # FIXME parse results
-    return self.run(command), None
+    return self.run(self.command), None
 
 class NoseBuilder(Builder):
   def get_default_monitored_paths(self):
     return "*.py **/*.py"
 
   def build(self):
-    v_env = ""
-    if os.path.exists("./bin/activate"):
-      v_env = ". ./bin/activate && "
-    res = self.run(v_env + 'nosetests --with-xunit')
+    res = self.run('nosetests --with-xunit')
     test_results = parse_xunit_results('nosetests.xml')
     return res, test_results
 
@@ -549,7 +549,11 @@ class DjangoBuilder(Builder):
     return "**.py"
 
   def build(self):
-    res = self.run('python ./manage.py test')
+    if os.path.exists('./manage.py'):
+      command = "python ./manage.py"
+    else:
+      command = "django-admin.py"
+    res = self.run(command + " test")
 #    test_results = parse_xunit_results('nosetests.xml')
     return res, None
 
