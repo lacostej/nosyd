@@ -557,9 +557,9 @@ class DjangoBuilder(Builder):
       command = "python ./manage.py"
     else:
       command = "django-admin.py"
-    res = self.run(command + " test")
-#    test_results = parse_xunit_results('nosetests.xml')
-    return res, None
+    res = self.run(command + " test --noinput --with-xunit")
+    test_results = parse_xunit_results('nosetests.xml')
+    return res, test_results
 
 class Maven2Builder(Builder):
   def get_default_monitored_paths(self):
