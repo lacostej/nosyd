@@ -350,10 +350,10 @@ class NosyProject:
       if (self.oldRes == 0 or self.keepOnNotifyingFailures):
         self.notifier.notifyFailure(test_results, self)
     else:
-      if (self.firstBuild):
-        self.notifier.notifySuccess(test_results, self)
-      elif (self.oldRes != 0):
+      if (self.oldRes != 0):
         self.notifier.notifyFixed(test_results, self)
+      else:
+        self.notifier.notifySuccess(test_results, self)
     self.firstBuild = False
     self.oldRes = res
 
@@ -386,7 +386,7 @@ class Notifier:
       msg1, msg2 = os.path.basename(project.project_dir) + " build successfull.", project.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
     else:
       msg1, msg2 = os.path.basename(project.project_dir) + " build successful.", project.project_dir + ": build successful."
-    self.notify(msg1, msg2)
+    self.notify(msg1, msg2, Notifier.URGENCY_LOW)
 
   def notifyFixed(self, r, project):
     if (r):
@@ -449,12 +449,15 @@ class GrowlNotifier(Notifier):
     Notifier.__init__(self, logger)
     self.growlNotifier = None
     self.icon = None
-    self.notetype = "DEFAULT"
+    self.notetypes = {self.URGENCY_LOW: "Success",
+                      self.URGENCY_NORMAL: "Fixed",
+                      self.URGENCY_CRITICAL: "Broken"
+                    }
 
   def is_supported(self):
     try:
       import Growl
-      notifications = [ self.notetype ]
+      notifications = self.notetypes.values()
       defaultNotifications = None
       self.growlNotifier = Growl.GrowlNotifier("Nosyd", notifications, defaultNotifications)
       self.growlNotifier.register()
@@ -474,7 +477,8 @@ class GrowlNotifier(Notifier):
     }
     sticky = False
     priority = growlpriorities[urgency]
-    self.growlNotifier.notify(self.notetype, msg1, msg2, self.icon, sticky, priority)
+    notetype = self.notetypes[urgency]
+    self.growlNotifier.notify(notetype, msg1, msg2, self.icon, sticky, priority)
 
 class Builder:
   '''A builder has one method, build() that returns [res, test_results]. Res is 0 if the build passed and test_results contains a XunitTestSuite instance or None
