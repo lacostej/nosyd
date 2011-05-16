@@ -279,7 +279,8 @@ class NosyProject:
     elif (self.type == "rake"):
       self.builder = RakeBuilder()
     elif (self.type == "django"):
-      self.builder = DjangoBuilder()
+      v_env = cp.get('nosy', 'virtualenv_activate')
+      self.builder = DjangoBuilder(v_env)
     elif (self.type == "generic"):
       command = cp.get('nosy', 'command')
       self.builder = GenericBuilder(command)
@@ -487,12 +488,9 @@ class Builder:
     self.logger = None
 
   def run(self, command):
-    v_env = ""
-    if os.path.exists("./bin/activate"):
-      v_env = ". ./bin/activate && "
     import subprocess
     try:
-      retcode = subprocess.call(v_env + command, shell=True)
+      retcode = subprocess.call(command, shell=True)
       if retcode < 0:
         logger.error("Child was terminated by signal " + str(-retcode))
       else:
@@ -549,14 +547,20 @@ class GradleBuilder(Builder):
     return res, test_results
 
 class DjangoBuilder(Builder):
+  def __init__(self, virtualenv_activate=None):
+    self.v_env = virtualenv_activate
+
   def get_default_monitored_paths(self):
-    return "**.py"
+    return "**.py **.html"
 
   def build(self):
     if os.path.exists('./manage.py'):
       command = "python ./manage.py"
     else:
       command = "django-admin.py"
+    if self.v_env:
+      command = "source %s && %s" % (self.v_env, command)
+    print(command)
     res = self.run(command + " test --noinput --with-xunit")
     test_results = parse_xunit_results('nosetests.xml')
     return res, test_results
