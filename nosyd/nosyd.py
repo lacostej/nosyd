@@ -3,9 +3,10 @@
 # By Jerome Lacoste, jerome@coffeebreaks.org
 # MIT license
 
-import os,stat,time,os.path
+import ConfigParser
+import time
+import os
 import logging
-import re
 import sys
 
 from xunit import *
@@ -258,8 +259,7 @@ class NosyProject:
 
   def _import_config(self):
     # config specific properties
-    import ConfigParser
-    cp = ConfigParser.SafeConfigParser()
+    cp = ConfigParser.SafeConfigParser({"virtualenv_activate": None, "cd_to": None})
     cp.add_section('nosy')
     cp.set('nosy', 'type', 'nose')
     cp.set('nosy', 'logging', 'warning')
@@ -280,7 +280,9 @@ class NosyProject:
       self.builder = RakeBuilder()
     elif (self.type == "django"):
       v_env = cp.get('nosy', 'virtualenv_activate')
-      self.builder = DjangoBuilder(v_env)
+      cd_to = cp.get('nosy', 'cd_to')
+      print("config is %s and %s" %(v_env, cd_to))
+      self.builder = DjangoBuilder(v_env, cd_to)
     elif (self.type == "generic"):
       command = cp.get('nosy', 'command')
       self.builder = GenericBuilder(command)
@@ -326,7 +328,7 @@ class NosyProject:
     for f in paths:
       try:
         stats = os.stat (f)
-        val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
+        val += stats.st_size + stats.st_mtime
       except OSError:
         continue
     self.logger.debug("checksum " + str(val))
@@ -489,6 +491,7 @@ class Builder:
 
   def run(self, command):
     import subprocess
+    print("Running command: %s" % command)
     try:
       retcode = subprocess.call(command, shell=True)
       if retcode < 0:
@@ -547,8 +550,9 @@ class GradleBuilder(Builder):
     return res, test_results
 
 class DjangoBuilder(Builder):
-  def __init__(self, virtualenv_activate=None):
+  def __init__(self, virtualenv_activate=None, cd_to=None):
     self.v_env = virtualenv_activate
+    self.cd_to = cd_to
 
   def get_default_monitored_paths(self):
     return "**.py **.html"
@@ -558,10 +562,12 @@ class DjangoBuilder(Builder):
       command = "python ./manage.py"
     else:
       command = "django-admin.py"
+    if self.cd_to:
+      command = "cd %s && %s" % (self.cd_to, command)
     if self.v_env:
       command = "source %s && %s" % (self.v_env, command)
-    print(command)
-    res = self.run(command + " test --noinput --with-xunit")
+    command += " test --noinput --with-xunit"
+    res = self.run(command)
     test_results = parse_xunit_results('nosetests.xml')
     return res, test_results
 
