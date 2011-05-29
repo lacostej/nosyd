@@ -3,9 +3,10 @@
 # By Jerome Lacoste, jerome@coffeebreaks.org
 # MIT license
 
-import os,stat,time,os.path
+import ConfigParser
+import time
+import os
 import logging
-import re
 import sys
 
 from xunit import *
@@ -258,8 +259,7 @@ class NosyProject:
 
   def _import_config(self):
     # config specific properties
-    import ConfigParser
-    cp = ConfigParser.SafeConfigParser()
+    cp = ConfigParser.SafeConfigParser({"virtualenv_activate": None, "cd_to": None})
     cp.add_section('nosy')
     cp.set('nosy', 'type', 'nose')
     cp.set('nosy', 'logging', 'warning')
@@ -279,7 +279,10 @@ class NosyProject:
     elif (self.type == "rake"):
       self.builder = RakeBuilder()
     elif (self.type == "django"):
-      self.builder = DjangoBuilder()
+      v_env = cp.get('nosy', 'virtualenv_activate')
+      cd_to = cp.get('nosy', 'cd_to')
+      print("config is %s and %s" %(v_env, cd_to))
+      self.builder = DjangoBuilder(v_env, cd_to)
     elif (self.type == "generic"):
       command = cp.get('nosy', 'command')
       self.builder = GenericBuilder(command)
@@ -325,7 +328,7 @@ class NosyProject:
     for f in paths:
       try:
         stats = os.stat (f)
-        val += stats [stat.ST_SIZE] + stats [stat.ST_MTIME]
+        val += stats.st_size + stats.st_mtime
       except OSError:
         continue
     self.logger.debug("checksum " + str(val))
@@ -350,10 +353,10 @@ class NosyProject:
       if (self.oldRes == 0 or self.keepOnNotifyingFailures):
         self.notifier.notifyFailure(test_results, self)
     else:
-      if (self.firstBuild):
-        self.notifier.notifySuccess(test_results, self)
-      elif (self.oldRes != 0):
+      if (self.oldRes != 0):
         self.notifier.notifyFixed(test_results, self)
+      else:
+        self.notifier.notifySuccess(test_results, self)
     self.firstBuild = False
     self.oldRes = res
 
@@ -386,7 +389,7 @@ class Notifier:
       msg1, msg2 = os.path.basename(project.project_dir) + " build successfull.", project.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
     else:
       msg1, msg2 = os.path.basename(project.project_dir) + " build successful.", project.project_dir + ": build successful."
-    self.notify(msg1, msg2)
+    self.notify(msg1, msg2, Notifier.URGENCY_LOW)
 
   def notifyFixed(self, r, project):
     if (r):
@@ -449,12 +452,15 @@ class GrowlNotifier(Notifier):
     Notifier.__init__(self, logger)
     self.growlNotifier = None
     self.icon = None
-    self.notetype = "DEFAULT"
+    self.notetypes = {self.URGENCY_LOW: "Success",
+                      self.URGENCY_NORMAL: "Fixed",
+                      self.URGENCY_CRITICAL: "Broken"
+                    }
 
   def is_supported(self):
     try:
       import Growl
-      notifications = [ self.notetype ]
+      notifications = self.notetypes.values()
       defaultNotifications = None
       self.growlNotifier = Growl.GrowlNotifier("Nosyd", notifications, defaultNotifications)
       self.growlNotifier.register()
@@ -474,7 +480,8 @@ class GrowlNotifier(Notifier):
     }
     sticky = False
     priority = growlpriorities[urgency]
-    self.growlNotifier.notify(self.notetype, msg1, msg2, self.icon, sticky, priority)
+    notetype = self.notetypes[urgency]
+    self.growlNotifier.notify(notetype, msg1, msg2, self.icon, sticky, priority)
 
 class Builder:
   '''A builder has one method, build() that returns [res, test_results]. Res is 0 if the build passed and test_results contains a XunitTestSuite instance or None
@@ -484,6 +491,7 @@ class Builder:
 
   def run(self, command):
     import subprocess
+    print("Running command: %s" % command)
     try:
       retcode = subprocess.call(command, shell=True)
       if retcode < 0:
@@ -502,7 +510,7 @@ class TrialBuilder:
   def build(self):
     return self.run('trial'), None
 
-class GenericBuilder:
+class GenericBuilder(Builder):
   def __init__(self, command):
     self.command = command
 
@@ -511,17 +519,14 @@ class GenericBuilder:
 
   def build(self):
     # FIXME parse results
-    return self.run(command), None
+    return self.run(self.command), None
 
 class NoseBuilder(Builder):
   def get_default_monitored_paths(self):
     return "*.py **/*.py"
 
   def build(self):
-    v_env = ""
-    if os.path.exists("./bin/activate"):
-      v_env = ". ./bin/activate && "
-    res = self.run(v_env + 'nosetests --with-xunit')
+    res = self.run('nosetests --with-xunit')
     test_results = parse_xunit_results('nosetests.xml')
     return res, test_results
 
@@ -545,13 +550,26 @@ class GradleBuilder(Builder):
     return res, test_results
 
 class DjangoBuilder(Builder):
+  def __init__(self, virtualenv_activate=None, cd_to=None):
+    self.v_env = virtualenv_activate
+    self.cd_to = cd_to
+
   def get_default_monitored_paths(self):
-    return "**.py"
+    return "**.py **.html"
 
   def build(self):
-    res = self.run('python ./manage.py test')
-#    test_results = parse_xunit_results('nosetests.xml')
-    return res, None
+    if os.path.exists('./manage.py'):
+      command = "python ./manage.py"
+    else:
+      command = "django-admin.py"
+    if self.cd_to:
+      command = "cd %s && %s" % (self.cd_to, command)
+    if self.v_env:
+      command = "source %s && %s" % (self.v_env, command)
+    command += " test --noinput --with-xunit"
+    res = self.run(command)
+    test_results = parse_xunit_results('nosetests.xml')
+    return res, test_results
 
 class Maven2Builder(Builder):
   def get_default_monitored_paths(self):

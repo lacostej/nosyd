@@ -71,6 +71,7 @@ Default values for the various configuration files:
     #monitor_paths   (project specific)
     #logging=warning (for the project and associated builder and notifier)
     #check_period    (when ran standalone, i.e. with --local)
+    #virtualenv_activate (for django builder, path to the activate script)
 
 
 ----
