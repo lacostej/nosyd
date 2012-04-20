@@ -7,6 +7,7 @@ Changes
 
 - new Rake builder
 - fixed FileSet when rpattern ends with **
+- include NEWS file in Python package
 
 
 
